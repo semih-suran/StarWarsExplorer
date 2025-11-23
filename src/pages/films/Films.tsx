@@ -2,14 +2,20 @@ import { useCallback, useMemo, useState } from "react";
 import { useGetFilms } from "@/api/films/use-get-films";
 import { Alert } from "@/components/Alert/Alert";
 import { Loading } from "@/components/Loading/Loading";
-import { POSTERS_BY_EPISODE, FilmsFilterForm, type FilmsFormData, FilmsList, FilmsModal, HeroCarousel } from ".";
-
+import {
+  POSTERS_BY_EPISODE,
+  FilmsFilterForm,
+  type FilmsFormData,
+  FilmsList,
+  FilmsModal,
+  HeroCarousel,
+} from ".";
 import { useFilteredList } from "@/hooks/useFilteredList";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
-
 import { useUiStore } from "@/store/useUiStore";
+import type { Film } from "@/types/film";
 
 export const Films = () => {
   const filters = useUiStore((s) => s.filmFilters);
@@ -32,7 +38,7 @@ export const Films = () => {
       subtitle: "",
     }));
 
-  const predicate = useCallback((film: any, f: FilmsFormData) => {
+  const predicate = useCallback((film: Film, f: FilmsFormData) => {
     const nameQ = (f.name ?? "").trim().toLowerCase();
     const directorQ = (f.director ?? "").trim().toLowerCase();
 
@@ -44,7 +50,7 @@ export const Films = () => {
     return matchesName && matchesDirector;
   }, []);
 
-  const filtered = useFilteredList(allFilms, filters, predicate);
+  const filtered = useFilteredList(allFilms ?? [], filters, predicate);
 
   const directorOptions = useMemo(() => {
     if (!allFilms) return [];
@@ -54,7 +60,7 @@ export const Films = () => {
     return directors.sort().map((d) => ({ id: d, label: d }));
   }, [allFilms]);
 
-  const { page: innerPage, totalPages, paginated } = usePagination(filtered, page, 6);
+  const { totalPages, paginated } = usePagination(filtered, page, 6);
 
   const wrappedPrev = () => setPage((p) => Math.max(1, p - 1));
   const wrappedNext = () => setPage((p) => Math.min(totalPages, p + 1));
@@ -87,7 +93,6 @@ export const Films = () => {
       <HeroCarousel items={carouselItems} intervalMs={3000} fadeMs={700} />
       <FilmsFilterForm
         onSubmit={handleFilter}
-        onReset={handleReset}
         defaultValues={filters}
         directorOptions={directorOptions}
       />
@@ -109,7 +114,9 @@ export const Films = () => {
         onNext={wrappedNext}
       />
 
-      {selectedId && <FilmsModal id={selectedId} onClose={() => setSelectedId(null)} />}
+      {selectedId && (
+        <FilmsModal id={selectedId} onClose={() => setSelectedId(null)} />
+      )}
     </>
   );
 };

@@ -1,8 +1,9 @@
 import { PosterCard } from "@/components/Card/PosterCard/PosterCard";
 import { POSTERS_BY_EPISODE } from "../FilmsPosterMap";
+import type { Film } from "@/types/film";
 
 type Props = {
-  data?: any[];
+  data?: Film[];
   onView?: (id: string) => void;
 };
 
