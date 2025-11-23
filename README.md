@@ -1,6 +1,6 @@
 # StarWars Explorer
 
-A responsive, interactive React application that allows users to explore the Star Wars universe via the SWAPI. Built with a focus on clean architecture, type safety, and robust error handling.
+A responsive, interactive React application that allows users to explore the Star Wars universe via the [[SWAPI](https://swapi.dev/)]. Built with a focus on clean architecture, type safety, and robust error handling.
 
 **Live Demo:** [[TBC](https://StarWars.com)]
 
