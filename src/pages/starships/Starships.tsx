@@ -3,6 +3,7 @@ import { useGetStarships } from "@/api/starships/use-get-starships";
 import { Alert } from "@/components/Alert/Alert";
 import { Loading } from "@/components/Loading/Loading";
 import { StarshipsList, StarshipsModal, StarshipsFilterForm, type StarshipsFormData } from ".";
+import { useUiStore } from "@/store/useUiStore";
 
 import { useFilteredList } from "@/hooks/useFilteredList";
 import { usePagination } from "@/hooks/usePagination";
@@ -12,9 +13,11 @@ import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import type { IStarship } from "@/types";
 
 export const Starships = () => {
-  const [filters, setFilters] = useState<StarshipsFormData>({ name: "", starship_class: "" });
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const filters = useUiStore((s) => s.starshipsFilters);
+  const setFilters = useUiStore((s) => s.setStarshipsFilters);
+  const resetFilters = useUiStore((s) => s.resetStarshipsFilters);
 
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
   const { data: allStarships, isLoading, error } = useGetStarships();
@@ -59,7 +62,7 @@ export const Starships = () => {
   };
 
   const handleReset = () => {
-    setFilters({ name: "", starship_class: "" });
+    resetFilters();
     setPage(1);
   };
 

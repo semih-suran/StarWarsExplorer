@@ -3,6 +3,7 @@ import { useGetVehicles } from "@/api/vehicles/use-get-vehicles";
 import { Alert } from "@/components/Alert/Alert";
 import { Loading } from "@/components/Loading/Loading";
 import { VehiclesList, VehiclesModal, VehiclesFilterForm, type VehiclesFormData } from ".";
+import { useUiStore } from "@/store/useUiStore";
 
 import { useFilteredList } from "@/hooks/useFilteredList";
 import { usePagination } from "@/hooks/usePagination";
@@ -12,7 +13,10 @@ import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import type { IVehicle } from "@/types";
 
 export const Vehicles = () => {
-  const [filters, setFilters] = useState<VehiclesFormData>({ name: "", vehicle_class: "" });
+  const filters = useUiStore((s) => s.vehiclesFilters);
+  const setFilters = useUiStore((s) => s.setVehiclesFilters);
+  const resetFilters = useUiStore((s) => s.resetVehiclesFilters);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
@@ -58,7 +62,7 @@ export const Vehicles = () => {
   };
 
   const handleReset = () => {
-    setFilters({ name: "", vehicle_class: "" });
+    resetFilters();
     setPage(1);
   };
 
