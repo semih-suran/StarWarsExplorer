@@ -1,3 +1,8 @@
+# Environment files
+.env
+.env.*         # ignore other env variants like .env.local, .env.production
+!.env.example  # keep an example file in the repo
+
 # Logs
 logs
 *.log
