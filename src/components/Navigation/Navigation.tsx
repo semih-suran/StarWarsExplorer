@@ -11,6 +11,22 @@ const NAVIGATION_ITEMS = [
     label: "People",
     url: "/people",
   },
+  {
+    label: "Planets",
+    url: "/planets",
+  },
+  {
+    label: "Species",
+    url: "/species",
+  },
+  {
+    label: "Starships",
+    url: "/starships",
+  },
+  {
+    label: "Vehicles",
+    url: "/vehicles",
+  },
 ];
 
 export const Navigation = () => {
