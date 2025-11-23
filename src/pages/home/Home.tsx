@@ -1,3 +1,5 @@
+import { Navigate } from "react-router";
+
 export const Home = () => {
-  return <h2>In a galaxy far, far away...</h2>
+  return <Navigate to="/films" />;
 };
