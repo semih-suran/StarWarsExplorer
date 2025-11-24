@@ -18,7 +18,6 @@ export const Vehicles = () => {
   const resetFilters = useUiStore((s) => s.resetVehiclesFilters);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
 
   const { data: allVehicles, isLoading, error } = useGetVehicles();
 
@@ -45,10 +44,7 @@ export const Vehicles = () => {
     return Array.from(new Set(allClasses)).sort();
   }, [allVehicles]);
 
-  const { totalPages, paginated } = usePagination(filtered, page, 10);
-
-  const wrappedPrev = () => setPage((p) => Math.max(1, p - 1));
-  const wrappedNext = () => setPage((p) => Math.min(totalPages, p + 1));
+  const { page, totalPages, paginated, next, prev, setPage } = usePagination(filtered, 1, 10);
 
   if (isLoading) return <Loading />;
   if (error) return <Alert message={(error as Error).message} />;
@@ -85,8 +81,8 @@ export const Vehicles = () => {
       <PaginationControls
         page={page}
         totalPages={totalPages}
-        onPrev={wrappedPrev}
-        onNext={wrappedNext}
+        onPrev={prev}
+        onNext={next}
       />
 
       {selectedId && <VehiclesModal id={selectedId} onClose={() => setSelectedId(null)} />}
