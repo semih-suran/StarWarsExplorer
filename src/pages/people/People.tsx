@@ -3,6 +3,7 @@ import { useGetPeople } from "@/api/people/use-get-people";
 import { Alert } from "@/components/Alert/Alert";
 import { Loading } from "@/components/Loading/Loading";
 import { PeopleFilterForm, type PeopleFormData, PeopleList, PeopleModal } from ".";
+import { useUiStore } from "@/store/useUiStore";
 
 import { useFilteredList } from "@/hooks/useFilteredList";
 import { usePagination } from "@/hooks/usePagination";
@@ -12,7 +13,10 @@ import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import type { IPeople } from "@/types";
 
 export const People = () => {
-  const [filters, setFilters] = useState<PeopleFormData>({ name: "", gender: "" });
+  const filters = useUiStore((s) => s.peopleFilters);
+  const setFilters = useUiStore((s) => s.setPeopleFilters);
+  const resetFilters = useUiStore((s) => s.resetPeopleFilters);
+  
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: allPeople, isLoading, error } = useGetPeople();
@@ -46,7 +50,7 @@ export const People = () => {
   };
 
   const handleReset = () => {
-    setFilters({ name: "", gender: "" });
+    resetFilters();
     setPage(1);
   };
 

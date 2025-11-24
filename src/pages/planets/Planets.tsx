@@ -3,6 +3,7 @@ import { useGetPlanets } from "@/api/planets/use-get-planets";
 import { Alert } from "@/components/Alert/Alert";
 import { Loading } from "@/components/Loading/Loading";
 import { PlanetsList, PlanetsModal, PlanetsFilterForm, type PlanetsFormData } from ".";
+import { useUiStore } from "@/store/useUiStore";
 
 import { useFilteredList } from "@/hooks/useFilteredList";
 import { usePagination } from "@/hooks/usePagination";
@@ -12,7 +13,10 @@ import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import type { IPlanet } from "@/types";
 
 export const Planets = () => {
-  const [filters, setFilters] = useState<PlanetsFormData>({ name: "", terrain: "" });
+  const filters = useUiStore((s) => s.planetsFilters);
+  const setFilters = useUiStore((s) => s.setPlanetsFilters);
+  const resetFilters = useUiStore((s) => s.resetPlanetsFilters);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: allPlanets, isLoading, error } = useGetPlanets();
@@ -62,7 +66,7 @@ export const Planets = () => {
   };
 
   const handleReset = () => {
-    setFilters({ name: "", terrain: "" });
+    resetFilters();
     setPage(1);
   };
 

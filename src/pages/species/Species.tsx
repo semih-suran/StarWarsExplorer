@@ -3,6 +3,7 @@ import { Alert } from "@/components/Alert/Alert";
 import { Loading } from "@/components/Loading/Loading";
 import { SpeciesList, SpeciesModal, SpeciesFilterForm, type SpeciesFormData } from ".";
 import { useGetSpecies } from "@/api/species/use-get-species";
+import { useUiStore } from "@/store/useUiStore";
 
 import { useFilteredList } from "@/hooks/useFilteredList";
 import { usePagination } from "@/hooks/usePagination";
@@ -12,10 +13,10 @@ import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import type { ISpecie } from "@/types";
 
 export const Species = () => {
-  const [filters, setFilters] = useState<SpeciesFormData>({
-    name: "",
-    classification: "",
-  });
+  const filters = useUiStore((s) => s.speciesFilters);
+  const setFilters = useUiStore((s) => s.setSpeciesFilters);
+  const resetFilters = useUiStore((s) => s.resetSpeciesFilters);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const {
@@ -83,7 +84,7 @@ export const Species = () => {
   };
 
   const handleReset = () => {
-    setFilters({ name: "", classification: "" });
+    resetFilters();
     setPage(1);
   };
 
