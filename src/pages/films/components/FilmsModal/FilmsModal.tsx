@@ -1,6 +1,7 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "@/api/api";
 import { POSTERS_BY_EPISODE } from "../FilmsPosterMap";
+import { API_CONFIG } from "@/api/api";
 
 type FilmDetail = {
   title: string;
@@ -34,7 +35,7 @@ export default function FilmsModal({ id, onClose }: Props) {
       queryKey: ["film", id],
       queryFn: () => fetchFilm(id!),
       enabled: Boolean(id),
-      staleTime: 1000 * 60,
+    staleTime: API_CONFIG.staleTime, // 1 minute
     });
 
   if (!id) return null;

@@ -1,29 +1,10 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { ISpecie } from "@/types";
-import { api } from "../api";
+import { API_CONFIG, fetchAllPages } from "../api";
 
-export type SWAPIList<T> = {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-};
-
-const getAllSpecies = async (): Promise<ISpecie[]> => {
-  let all: ISpecie[] = [];
-  let page = 1;
-  let response;
-  do {
-    response = await api.get<SWAPIList<ISpecie>>(`species/?page=${page}`);
-    all = all.concat(response.data.results);
-    page++;
-  } while (response.data.next);
-  return all;
-};
-
-export const useGetSpecies = (): UseQueryResult<ISpecie[], Error> =>
+export const useGetSpecies = () =>
   useQuery<ISpecie[], Error>({
     queryKey: ["species-all"],
-    queryFn: getAllSpecies,
-    staleTime: 1000 * 60,
+    queryFn: () => fetchAllPages<ISpecie>("species"),
+    staleTime: API_CONFIG.staleTime, // 1 minute
   });

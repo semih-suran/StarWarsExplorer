@@ -2,6 +2,7 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "@/api/api";
 import { placeholder } from "@/utilities/placeholder";
 import type { ISpecie } from "@/types";
+import { API_CONFIG } from "@/api/api";
 
 const fetchSpecies = async (id: string) => {
   const { data } = await api.get<ISpecie>(`species/${id}/`);
@@ -22,7 +23,7 @@ export default function SpeciesModal({ id, onClose }: Props) {
       queryKey: ["species", id],
       queryFn: () => fetchSpecies(id!),
       enabled: Boolean(id),
-      staleTime: 1000 * 60,
+    staleTime: API_CONFIG.staleTime, // 1 minute
     }
   );
 

@@ -1,92 +1,52 @@
-import { useCallback, useMemo, useState } from "react";
-import { useGetVehicles } from "@/api/vehicles/use-get-vehicles";
-import { Alert } from "@/components/Alert/Alert";
-import { Loading } from "@/components/Loading/Loading";
-import { VehiclesList, VehiclesModal, VehiclesFilterForm, type VehiclesFormData } from ".";
+import { useCallback, useMemo } from "react";
 import { useUiStore } from "@/store/useUiStore";
-
-import { useFilteredList } from "@/hooks/useFilteredList";
-import { usePagination } from "@/hooks/usePagination";
-import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
-import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
-
+import { useGetVehicles } from "@/api/vehicles/use-get-vehicles";
+import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
 import type { IVehicle } from "@/types";
 
+import { GenericResourcePage } from "@/components";
+import {
+  VehiclesList,
+  VehiclesModal,
+  VehiclesFilterForm,
+  type VehiclesFormData,
+} from ".";
+
+export const vehiclePredicate = (vehicle: IVehicle, f: VehiclesFormData) => {
+  const nameMatch = matchesSearch(vehicle.name, f.name);
+  const classMatch = matchesExact(vehicle.vehicle_class, f.vehicle_class);
+  return nameMatch && classMatch;
+};
+
 export const Vehicles = () => {
-  const filters = useUiStore((s) => s.vehiclesFilters);
-  const setFilters = useUiStore((s) => s.setVehiclesFilters);
-  const resetFilters = useUiStore((s) => s.resetVehiclesFilters);
+  const { vehiclesFilters, setVehiclesFilters, resetVehiclesFilters } =
+    useUiStore();
+  const { data, isLoading, error } = useGetVehicles();
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const { data: allVehicles, isLoading, error } = useGetVehicles();
-
-  const predicate = useCallback(
-    (vehicle: IVehicle, f: VehiclesFormData) => {
-      const nameQ = (f.name ?? "").trim().toLowerCase();
-      const classQ = (f.vehicle_class ?? "").trim().toLowerCase();
-
-      const matchesName = !nameQ || (vehicle.name ?? "").toLowerCase().includes(nameQ);
-      const matchesClass = !classQ || (vehicle.vehicle_class ?? "").toLowerCase().includes(classQ);
-
-      return matchesName && matchesClass;
-    },
-    []
-  );
-
-  const filtered = useFilteredList(allVehicles ?? [], filters, predicate);
+  const predicate = useCallback(vehiclePredicate, []);
 
   const classOptions = useMemo(() => {
-    if (!allVehicles) return [];
-    const allClasses = allVehicles
+    if (!data) return [];
+    const allClasses = data
       .map((v) => (v.vehicle_class ?? "").trim().toLowerCase())
       .filter(Boolean);
     return Array.from(new Set(allClasses)).sort();
-  }, [allVehicles]);
-
-  const { page, totalPages, paginated, next, prev, setPage } = usePagination(filtered, 1, 10);
-
-  if (isLoading) return <Loading />;
-  if (error) return <Alert message={(error as Error).message} />;
-
-  const handleFilter = (form: VehiclesFormData) => {
-    setFilters({
-      name: form.name?.trim() ?? "",
-      vehicle_class: form.vehicle_class?.trim() ?? "",
-    });
-    setPage(1);
-  };
-
-  const handleReset = () => {
-    resetFilters();
-    setPage(1);
-  };
+  }, [data]);
 
   return (
-    <>
-      <VehiclesFilterForm
-        onSubmit={handleFilter}
-        onReset={handleReset}
-        defaultValues={filters}
-        classOptions={classOptions}
-      />
-
-      <ActiveFilters
-        filters={{ name: filters.name, class: filters.vehicle_class }}
-        onReset={handleReset}
-      />
-
-      <VehiclesList data={paginated} onView={(id) => setSelectedId(id)} />
-
-      <PaginationControls
-        page={page}
-        totalPages={totalPages}
-        onPrev={prev}
-        onNext={next}
-      />
-
-      {selectedId && <VehiclesModal id={selectedId} onClose={() => setSelectedId(null)} />}
-    </>
+    <GenericResourcePage<IVehicle, VehiclesFormData>
+      data={data}
+      isLoading={isLoading}
+      error={error}
+      filters={vehiclesFilters}
+      setFilters={setVehiclesFilters}
+      resetFilters={resetVehiclesFilters}
+      predicate={predicate}
+      FilterForm={VehiclesFilterForm}
+      List={VehiclesList}
+      Modal={VehiclesModal}
+      extraFilterProps={{ classOptions }}
+    />
   );
 };
 
