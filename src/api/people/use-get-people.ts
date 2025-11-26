@@ -1,29 +1,10 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery, } from "@tanstack/react-query";
 import type { IPeople } from "../../types";
-import { api } from "../api";
+import { API_CONFIG, fetchAllPages } from "../api";
 
-export type SWAPIList<T> = {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-};
 
-const getAllPeople = async (): Promise<IPeople[]> => {
-  let all: IPeople[] = [];
-  let page = 1;
-  let response;
-  do {
-    response = await api.get<SWAPIList<IPeople>>(`people/?page=${page}`);
-    all = all.concat(response.data.results);
-    page++;
-  } while (response.data.next);
-  return all;
-};
-
-export const useGetPeople = (): UseQueryResult<IPeople[], Error> =>
-  useQuery<IPeople[], Error>({
+export const useGetPeople = () => useQuery<IPeople[], Error>({
     queryKey: ["people-all"],
-    queryFn: getAllPeople,
-    staleTime: 1000 * 60,
+    queryFn: ()=>fetchAllPages<IPeople>("people"),
+    staleTime: API_CONFIG.staleTime, // 1 minute
   });

@@ -1,92 +1,52 @@
-import { useCallback, useMemo, useState } from "react";
-import { useGetStarships } from "@/api/starships/use-get-starships";
-import { Alert } from "@/components/Alert/Alert";
-import { Loading } from "@/components/Loading/Loading";
-import { StarshipsList, StarshipsModal, StarshipsFilterForm, type StarshipsFormData } from ".";
+import { useCallback, useMemo } from "react";
 import { useUiStore } from "@/store/useUiStore";
-
-import { useFilteredList } from "@/hooks/useFilteredList";
-import { usePagination } from "@/hooks/usePagination";
-import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
-import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
-
+import { useGetStarships } from "@/api/starships/use-get-starships";
+import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
 import type { IStarship } from "@/types";
 
+import { GenericResourcePage } from "@/components";
+import {
+  StarshipsList,
+  StarshipsModal,
+  StarshipsFilterForm,
+  type StarshipsFormData,
+} from ".";
+
+export const starshipPredicate = (ship: IStarship, f: StarshipsFormData) => {
+  const nameMatch = matchesSearch(ship.name, f.name);
+  const classMatch = matchesExact(ship.starship_class, f.starship_class);
+  return nameMatch && classMatch;
+};
+
 export const Starships = () => {
-  const filters = useUiStore((s) => s.starshipsFilters);
-  const setFilters = useUiStore((s) => s.setStarshipsFilters);
-  const resetFilters = useUiStore((s) => s.resetStarshipsFilters);
+  const { starshipsFilters, setStarshipsFilters, resetStarshipsFilters } =
+    useUiStore();
+  const { data, isLoading, error } = useGetStarships();
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  
-  const { data: allStarships, isLoading, error } = useGetStarships();
-
-  const predicate = useCallback(
-    (ship: IStarship, f: StarshipsFormData) => {
-      const nameQ = (f.name ?? "").trim().toLowerCase();
-      const classQ = (f.starship_class ?? "").trim().toLowerCase();
-
-      const matchesName = !nameQ || (ship.name ?? "").toLowerCase().includes(nameQ);
-      const matchesClass = !classQ || (ship.starship_class ?? "").toLowerCase().includes(classQ);
-
-      return matchesName && matchesClass;
-    },
-    []
-  );
-
-  const filtered = useFilteredList(allStarships ?? [], filters, predicate);
+  const predicate = useCallback(starshipPredicate, []);
 
   const classOptions = useMemo(() => {
-    if (!allStarships) return [];
-    const allClasses = allStarships
+    if (!data) return [];
+    const allClasses = data
       .map((s) => (s.starship_class ?? "").trim().toLowerCase())
       .filter(Boolean);
     return Array.from(new Set(allClasses)).sort();
-  }, [allStarships]);
-
-  const { page, totalPages, paginated, next, prev, setPage } = usePagination(filtered, 1, 10);
-
-  if (isLoading) return <Loading />;
-  if (error) return <Alert message={(error as Error).message} />;
-
-  const handleFilter = (form: StarshipsFormData) => {
-    setFilters({
-      name: form.name?.trim() ?? "",
-      starship_class: form.starship_class?.trim() ?? "",
-    });
-    setPage(1);
-  };
-
-  const handleReset = () => {
-    resetFilters();
-    setPage(1);
-  };
+  }, [data]);
 
   return (
-    <>
-      <StarshipsFilterForm
-        onSubmit={handleFilter}
-        onReset={handleReset}
-        defaultValues={filters}
-        classOptions={classOptions}
-      />
-
-      <ActiveFilters
-        filters={{ name: filters.name, class: filters.starship_class }}
-        onReset={handleReset}
-      />
-
-      <StarshipsList data={paginated} onView={(id) => setSelectedId(id)} />
-
-      <PaginationControls
-        page={page}
-        totalPages={totalPages}
-        onPrev={prev}
-        onNext={next}
-      />
-
-      {selectedId && <StarshipsModal id={selectedId} onClose={() => setSelectedId(null)} />}
-    </>
+    <GenericResourcePage<IStarship, StarshipsFormData>
+      data={data}
+      isLoading={isLoading}
+      error={error}
+      filters={starshipsFilters}
+      setFilters={setStarshipsFilters}
+      resetFilters={resetStarshipsFilters}
+      predicate={predicate}
+      FilterForm={StarshipsFilterForm}
+      List={StarshipsList}
+      Modal={StarshipsModal}
+      extraFilterProps={{ classOptions }}
+    />
   );
 };
 

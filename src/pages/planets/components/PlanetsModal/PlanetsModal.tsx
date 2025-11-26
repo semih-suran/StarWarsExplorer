@@ -1,6 +1,7 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { api } from '@/api/api';
 import { placeholder } from '@/utilities/placeholder';
+import { API_CONFIG } from '@/api/api';
 
 type PlanetDetail = {
   name: string;
@@ -33,7 +34,7 @@ export default function PlanetsModal({ id, onClose }: Props) {
       queryKey: ['planet', id],
       queryFn: () => fetchPlanet(id!),
       enabled: Boolean(id),
-      staleTime: 1000 * 60,
+    staleTime: API_CONFIG.staleTime, // 1 minute
     });
 
   if (!id) return null;

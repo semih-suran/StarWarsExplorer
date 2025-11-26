@@ -1,6 +1,7 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "@/api/api";
 import { placeholder } from "@/utilities/placeholder";
+import { API_CONFIG } from "@/api/api";
 
 type PersonDetail = {
   name: string;
@@ -35,7 +36,7 @@ export default function PeopleModal({ id, onClose }: Props) {
       queryKey: ["person", id],
       queryFn: () => fetchPerson(id!),
       enabled: Boolean(id),
-      staleTime: 1000 * 60,
+    staleTime: API_CONFIG.staleTime, // 1 minute
     });
 
   if (!id) return null;

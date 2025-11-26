@@ -2,6 +2,7 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "@/api/api";
 import { placeholder } from "@/utilities/placeholder";
 import type { IVehicle } from "@/types";
+import { API_CONFIG } from "@/api/api";
 
 const fetchVehicle = async (id: string) => {
   const { data } = await api.get<IVehicle>(`vehicles/${id}/`);
@@ -18,7 +19,7 @@ export default function VehiclesModal({ id, onClose }: Props) {
     queryKey: ["vehicle", id],
     queryFn: () => fetchVehicle(id!),
     enabled: Boolean(id),
-    staleTime: 1000 * 60,
+    staleTime: API_CONFIG.staleTime, // 1 minute
   });
 
   if (!id) return null;
