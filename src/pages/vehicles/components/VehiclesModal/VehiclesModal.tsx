@@ -19,7 +19,7 @@ export default function VehiclesModal({ id, onClose }: Props) {
     queryKey: ["vehicle", id],
     queryFn: () => fetchVehicle(id!),
     enabled: Boolean(id),
-    staleTime: API_CONFIG.staleTime, // 1 minute
+    staleTime: API_CONFIG.staleTime,
   });
 
   if (!id) return null;

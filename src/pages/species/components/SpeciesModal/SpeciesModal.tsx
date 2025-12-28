@@ -23,7 +23,7 @@ export default function SpeciesModal({ id, onClose }: Props) {
       queryKey: ["species", id],
       queryFn: () => fetchSpecies(id!),
       enabled: Boolean(id),
-    staleTime: API_CONFIG.staleTime, // 1 minute
+    staleTime: API_CONFIG.staleTime,
     }
   );
 

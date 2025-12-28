@@ -1,5 +1,6 @@
 import { cn } from "@/utilities/cn";
 import { NavLink } from "react-router-dom";
+import { prefetchRoute } from "../../../Routes";
 
 type Props = {
   mobile: boolean;
@@ -23,7 +24,9 @@ export const NavigationItems = ({ mobile, data }: Props) => {
     >
       {data.map((item) => (
         <li key={item.url}>
-          <NavLink to={item.url}>{item.label}</NavLink>
+          <NavLink to={item.url} onMouseEnter={() => prefetchRoute(item.url)}>
+            {item.label}
+          </NavLink>
         </li>
       ))}
     </ul>

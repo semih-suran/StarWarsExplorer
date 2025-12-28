@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useUiStore } from "@/store/useUiStore";
-import { useGetStarships } from "@/api/starships/use-get-starships";
+import { useGetResource } from "@/hooks/useGetResource";
+import { getStarships } from "@/api/api";
 import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
 import type { IStarship } from "@/types";
 
@@ -21,21 +22,30 @@ export const starshipPredicate = (ship: IStarship, f: StarshipsFormData) => {
 export const Starships = () => {
   const { starshipsFilters, setStarshipsFilters, resetStarshipsFilters } =
     useUiStore();
-  const { data, isLoading, error } = useGetStarships();
+
+  const { data, isLoading, error } = useGetResource(
+    "starships",
+    getStarships,
+    1,
+    starshipsFilters.name
+  );
 
   const predicate = useCallback(starshipPredicate, []);
 
+  const results = data?.results || [];
+
   const classOptions = useMemo(() => {
-    if (!data) return [];
-    const allClasses = data
+    if (!results.length) return [];
+    const allClasses = results
       .map((s) => (s.starship_class ?? "").trim().toLowerCase())
       .filter(Boolean);
     return Array.from(new Set(allClasses)).sort();
-  }, [data]);
+  }, [results]);
 
   return (
     <GenericResourcePage<IStarship, StarshipsFormData>
-      data={data}
+      title="Starships"
+      data={results}
       isLoading={isLoading}
       error={error}
       filters={starshipsFilters}

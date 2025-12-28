@@ -50,6 +50,7 @@ export const Films = () => {
       <HeroCarousel items={carouselItems} intervalMs={3000} fadeMs={700} />
 
       <GenericResourcePage<Film, FilmsFormData>
+        title="Films"
         data={data}
         isLoading={isLoading}
         error={error}

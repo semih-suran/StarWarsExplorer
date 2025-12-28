@@ -35,7 +35,7 @@ export default function FilmsModal({ id, onClose }: Props) {
       queryKey: ["film", id],
       queryFn: () => fetchFilm(id!),
       enabled: Boolean(id),
-    staleTime: API_CONFIG.staleTime, // 1 minute
+    staleTime: API_CONFIG.staleTime,
     });
 
   if (!id) return null;

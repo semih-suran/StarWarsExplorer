@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useUiStore } from "@/store/useUiStore";
-import { useGetPlanets } from "@/api/planets/use-get-planets";
+import { useGetResource } from "@/hooks/useGetResource";
+import { getPlanets } from "@/api/api";
 import { matchesSearch } from "@/utilities/filter-utils";
 import type { IPlanet } from "@/types";
 
@@ -30,22 +31,31 @@ export const planetPredicate = (planet: IPlanet, f: PlanetsFormData) => {
 export const Planets = () => {
   const { planetsFilters, setPlanetsFilters, resetPlanetsFilters } =
     useUiStore();
-  const { data, isLoading, error } = useGetPlanets();
+  
+  const { data, isLoading, error } = useGetResource(
+    "planets",
+    getPlanets,
+    1,
+    planetsFilters.name
+  );
 
   const predicate = useCallback(planetPredicate, []);
 
+  const results = data?.results || [];
+
   const terrainOptions = useMemo(() => {
-    if (!data) return [];
-    const allTerrains = data.flatMap((p) =>
+    if (!results.length) return [];
+    const allTerrains = results.flatMap((p) =>
       p.terrain.split(",").map((t) => t.trim().toLowerCase())
     );
     const unique = Array.from(new Set(allTerrains)).filter(Boolean);
     return unique.sort();
-  }, [data]);
+  }, [results]);
 
   return (
     <GenericResourcePage<IPlanet, PlanetsFormData>
-      data={data}
+      title="Planets"
+      data={results}
       isLoading={isLoading}
       error={error}
       filters={planetsFilters}

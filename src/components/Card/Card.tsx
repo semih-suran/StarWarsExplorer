@@ -13,7 +13,7 @@ export const Card = ({ title, children, className, testId }: Props) => {
   return (
     <div
       className={cn(
-        "card bg-base-100 w-full shadow-sm overflow-hidden",
+        "card bg-base-100 border-2 border-[#FFE81F] shadow-[0_0_10px_rgba(255,232,31,0.3)] w-full shadow-sm overflow-hidden",
         className
       )}
       data-testid={testId}

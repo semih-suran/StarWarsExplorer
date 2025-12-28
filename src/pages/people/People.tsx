@@ -1,34 +1,45 @@
 import { useCallback } from "react";
 import { useUiStore } from "@/store/useUiStore";
-import { useGetPeople } from "@/api/people/use-get-people";
-import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
-import type { IPeople } from "@/types";
+import { useGetResource } from "@/hooks/useGetResource";
+import { getPeople } from "@/api/api";
 import { GenericResourcePage } from "@/components";
+import { PeopleList } from "./components/PeopleList/PeopleList";
 import {
   PeopleFilterForm,
-  PeopleList,
-  PeopleModal,
   type PeopleFormData,
-} from ".";
+} from "./components/PeopleFilterForm/PeopleFilterForm";
+import { PeopleModal } from "./components/PeopleModal/PeopleModal";
+import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
+import type { IPeople } from "@/types";
+
+const peoplePredicate = (person: IPeople, filters: PeopleFormData) => {
+  const nameMatch = matchesSearch(person.name, filters.name);
+  const genderMatch = matchesExact(person.gender, filters.gender);
+
+  return nameMatch && genderMatch;
+};
 
 export const People = () => {
-  const { peopleFilters, setPeopleFilters, resetPeopleFilters } = useUiStore();
-  const { data, isLoading, error } = useGetPeople();
+  const { peopleFilters } = useUiStore();
 
-  const predicate = useCallback((person: IPeople, f: PeopleFormData) => {
-    const nameMatch = matchesSearch(person.name, f.name);
-    const genderMatch = matchesExact(person.gender, f.gender);
-    return nameMatch && genderMatch;
-  }, []);
+  const { data, isLoading, error } = useGetResource(
+    "people",
+    getPeople,
+    1,
+    peopleFilters.name
+  );
+
+  const predicate = useCallback(peoplePredicate, []);
 
   return (
-    <GenericResourcePage<IPeople, PeopleFormData>
-      data={data}
+    <GenericResourcePage
+      title="People"
+      data={data?.results || []}
       isLoading={isLoading}
       error={error}
       filters={peopleFilters}
-      setFilters={setPeopleFilters}
-      resetFilters={resetPeopleFilters}
+      setFilters={(f) => useUiStore.getState().setPeopleFilters(f)}
+      resetFilters={() => useUiStore.getState().resetPeopleFilters()}
       predicate={predicate}
       FilterForm={PeopleFilterForm}
       List={PeopleList}

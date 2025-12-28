@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useUiStore } from "@/store/useUiStore";
-import { useGetVehicles } from "@/api/vehicles/use-get-vehicles";
+import { useGetResource } from "@/hooks/useGetResource";
+import { getVehicles } from "@/api/api";
 import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
 import type { IVehicle } from "@/types";
 
@@ -21,21 +22,30 @@ export const vehiclePredicate = (vehicle: IVehicle, f: VehiclesFormData) => {
 export const Vehicles = () => {
   const { vehiclesFilters, setVehiclesFilters, resetVehiclesFilters } =
     useUiStore();
-  const { data, isLoading, error } = useGetVehicles();
+
+  const { data, isLoading, error } = useGetResource(
+    "vehicles",
+    getVehicles,
+    1,
+    vehiclesFilters.name
+  );
 
   const predicate = useCallback(vehiclePredicate, []);
 
+  const results = data?.results || [];
+
   const classOptions = useMemo(() => {
-    if (!data) return [];
-    const allClasses = data
+    if (!results.length) return [];
+    const allClasses = results
       .map((v) => (v.vehicle_class ?? "").trim().toLowerCase())
       .filter(Boolean);
     return Array.from(new Set(allClasses)).sort();
-  }, [data]);
+  }, [results]);
 
   return (
     <GenericResourcePage<IVehicle, VehiclesFormData>
-      data={data}
+      title="Vehicles"
+      data={results}
       isLoading={isLoading}
       error={error}
       filters={vehiclesFilters}
