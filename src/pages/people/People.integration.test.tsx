@@ -1,74 +1,102 @@
-import { vi, describe, beforeEach, it, expect } from "vitest";
-import { render, screen } from "@/utilities/testing-utils";
-import userEvent from "@testing-library/user-event";
+import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { People } from "./People";
-import { mockPeople } from "@/api/people/mock";
-import { useUiStore } from "@/store/useUiStore";
+import * as api from "@/api/api";
+import { userEvent } from "@testing-library/user-event";
 
-vi.mock("@/api/people/use-get-people", async () => {
-  const actual = await vi.importActual("@/api/people/use-get-people");
+const mockPeople = [
+  {
+    name: "Luke Skywalker",
+    height: "172",
+    mass: "77",
+    gender: "male",
+    birth_year: "19BBY",
+    url: "https://swapi.info/api/people/1",
+  },
+  {
+    name: "C-3PO",
+    height: "167",
+    mass: "75",
+    gender: "n/a",
+    birth_year: "112BBY",
+    url: "https://swapi.info/api/people/2",
+  },
+];
+
+const renderWithClient = (ui: React.ReactElement) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return {
-    ...actual,
-    useGetPeople: vi.fn(),
+    ...render(
+      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+    ),
   };
-});
-
-import { useGetPeople } from "@/api/people/use-get-people";
-const mockUseGetPeople = vi.mocked(useGetPeople);
+};
 
 describe("People page - integration", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-
-    useUiStore.setState({
-      peopleFilters: { name: "", gender: "" },
+  it("loads people and allows filtering by name", async () => {
+    vi.spyOn(api, "getPeople").mockResolvedValue({
+      count: 2,
+      next: null,
+      previous: null,
+      results: mockPeople as any,
     });
 
-    try {
-      localStorage.removeItem("sw-explorer-ui");
-    } catch (e) {
-    }
-  });
+    renderWithClient(<People />);
 
-  it("loads people and allows filtering by name (real filtering + pagination hooks)", async () => {
-    mockUseGetPeople.mockReturnValue({
-      data: mockPeople,
-      isLoading: false,
-      error: null,
-    } as any);
+    await waitFor(() => {
+      expect(screen.getByText("Luke Skywalker")).toBeInTheDocument();
+      expect(screen.getByText("C-3PO")).toBeInTheDocument();
+    });
 
     const user = userEvent.setup();
-    render(<People />);
+    const nameInput = screen.getByPlaceholderText(/search by name/i);
 
-    const initialCards = await screen.findAllByTestId("person-card");
-    expect(initialCards.length).toBe(mockPeople.length);
+    const filterButton = screen.getByRole("button", { name: "Filter" });
 
-    await user.type(screen.getByPlaceholderText(/search by name/i), "Luke");
-    await user.click(screen.getByRole("button", { name: /filter/i }));
+    await user.type(nameInput, "Luke");
+    await user.click(filterButton);
 
-    const filtered = await screen.findAllByTestId("person-card");
-    expect(filtered).toHaveLength(1);
-    expect(screen.getByText(/Luke Skywalker/)).toBeInTheDocument();
+    await waitFor(() => {
+       expect(screen.queryByText("C-3PO")).not.toBeInTheDocument();
+       expect(screen.getByText("Luke Skywalker")).toBeInTheDocument();
+    });
   });
 
-  it("reset returns full list (click the form Reset button)", async () => {
-    mockUseGetPeople.mockReturnValue({
-      data: mockPeople,
-      isLoading: false,
-      error: null,
-    } as any);
+  it("reset returns full list", async () => {
+    vi.spyOn(api, "getPeople").mockResolvedValue({
+      count: 2,
+      next: null,
+      previous: null,
+      results: mockPeople as any,
+    });
+
+    renderWithClient(<People />);
+
+    await waitFor(() => expect(screen.getByText("Luke Skywalker")).toBeInTheDocument());
 
     const user = userEvent.setup();
-    render(<People />);
 
-    await user.type(screen.getByPlaceholderText(/search by name/i), "C-3PO");
-    await user.click(screen.getByRole("button", { name: /filter/i }));
+    const resetButton = screen.getByRole("button", { name: "Reset" });
+    
+    const nameInput = screen.getByPlaceholderText(/search by name/i);
+    const filterButton = screen.getByRole("button", { name: "Filter" });
 
-    expect((await screen.findAllByTestId("person-card")).length).toBe(1);
+    await user.type(nameInput, "Luke");
+    await user.click(filterButton);
+    await waitFor(() => expect(screen.queryByText("C-3PO")).not.toBeInTheDocument());
 
-    await user.click(screen.getByRole("button", { name: /^Reset$/i }));
+    await user.click(resetButton);
 
-    const all = await screen.findAllByTestId("person-card");
-    expect(all.length).toBe(mockPeople.length);
+    await waitFor(() => {
+      expect(screen.getByText("C-3PO")).toBeInTheDocument();
+      expect(screen.getByText("Luke Skywalker")).toBeInTheDocument();
+    });
   });
 });

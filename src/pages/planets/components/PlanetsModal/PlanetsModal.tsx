@@ -34,7 +34,7 @@ export default function PlanetsModal({ id, onClose }: Props) {
       queryKey: ['planet', id],
       queryFn: () => fetchPlanet(id!),
       enabled: Boolean(id),
-    staleTime: API_CONFIG.staleTime, // 1 minute
+    staleTime: API_CONFIG.staleTime,
     });
 
   if (!id) return null;

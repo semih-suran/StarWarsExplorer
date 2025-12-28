@@ -7,6 +7,7 @@ import { PaginationControls } from "@/components/PaginationControls/PaginationCo
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 
 interface Props<T, F> {
+  title: string;
   data: T[] | undefined;
   isLoading: boolean;
   error: Error | null;
@@ -29,6 +30,7 @@ interface Props<T, F> {
 }
 
 export const GenericResourcePage = <T, F>({
+  title,
   data,
   isLoading,
   error,
@@ -65,7 +67,9 @@ export const GenericResourcePage = <T, F>({
   };
 
   return (
-    <>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-black mb-8 tracking-tight">{title}</h1>
+
       <FilterForm
         onSubmit={handleFilter}
         onReset={handleReset}
@@ -87,6 +91,6 @@ export const GenericResourcePage = <T, F>({
       {selectedId && (
         <Modal id={selectedId} onClose={() => setSelectedId(null)} />
       )}
-    </>
+    </div>
   );
 };

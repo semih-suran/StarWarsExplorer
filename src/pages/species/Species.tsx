@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useUiStore } from "@/store/useUiStore";
-import { useGetSpecies } from "@/api/species/use-get-species";
+import { useGetResource } from "@/hooks/useGetResource";
+import { getSpecies } from "@/api/api";
 import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
 import type { ISpecie } from "@/types";
 
@@ -21,25 +22,34 @@ export const speciesPredicate = (specie: ISpecie, f: SpeciesFormData) => {
 export const Species = () => {
   const { speciesFilters, setSpeciesFilters, resetSpeciesFilters } =
     useUiStore();
-  const { data, isLoading, error } = useGetSpecies();
+
+  const { data, isLoading, error } = useGetResource(
+    "species",
+    getSpecies,
+    1,
+    speciesFilters.name
+  );
 
   const predicate = useCallback(speciesPredicate, []);
 
+  const results = data?.results || [];
+
   const classificationOptions = useMemo(() => {
-    if (!data) return [];
+    if (!results.length) return [];
     const opts = Array.from(
       new Set(
-        data
+        results
           .map((s) => (s.classification ?? "").trim().toLowerCase())
           .filter(Boolean)
       )
     );
     return opts.sort().map((c) => ({ id: c, label: c }));
-  }, [data]);
+  }, [results]);
 
   return (
     <GenericResourcePage<ISpecie, SpeciesFormData>
-      data={data}
+      title="Species"
+      data={results}
       isLoading={isLoading}
       error={error}
       filters={speciesFilters}

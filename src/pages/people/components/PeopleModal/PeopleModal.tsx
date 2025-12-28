@@ -1,7 +1,6 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { api } from "@/api/api";
 import { placeholder } from "@/utilities/placeholder";
-import { API_CONFIG } from "@/api/api";
 
 type PersonDetail = {
   name: string;
@@ -21,7 +20,7 @@ type PersonDetail = {
 };
 
 const fetchPerson = async (id: string) => {
-  const { data } = await api.get<PersonDetail>(`/people/${id}/`);
+  const { data } = await api.get<PersonDetail>(`/people/${id}`);
   return data;
 };
 
@@ -30,20 +29,25 @@ type Props = {
   onClose: () => void;
 };
 
-export default function PeopleModal({ id, onClose }: Props) {
+export const PeopleModal = ({ id, onClose }: Props) => {
   const { data, isLoading, isError }: UseQueryResult<PersonDetail, Error> =
     useQuery({
       queryKey: ["person", id],
       queryFn: () => fetchPerson(id!),
       enabled: Boolean(id),
-    staleTime: API_CONFIG.staleTime, // 1 minute
+      staleTime: 1000 * 60,
     });
 
   if (!id) return null;
 
   return (
-    <div className="modal modal-open" role="dialog" aria-modal="true" aria-labelledby="person-modal-title">
-      <div className="modal-box max-w-3xl">
+    <div
+      className="modal modal-open"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="person-modal-title"
+    >
+      <div className="modal-box max-w-3xl relative">
         <button
           type="button"
           className="btn btn-ghost btn-sm btn-circle absolute right-2 top-2"
@@ -53,42 +57,94 @@ export default function PeopleModal({ id, onClose }: Props) {
           ✕
         </button>
 
-        {isLoading && <div className="py-8">Loading…</div>}
+        {isLoading && (
+          <div className="py-8 text-center">Loading details...</div>
+        )}
+
         {isError && (
           <div className="alert alert-error">
-            Error loading person details
-            <div className="mt-2">
-              <button className="btn btn-xs" onClick={() => onClose()}>
-                Close
-              </button>
-            </div>
+            <span>Error loading person details.</span>
+            <button className="btn btn-xs" onClick={onClose}>
+              Close
+            </button>
           </div>
         )}
 
         {data && (
-          <div className="flex flex-col lg:flex-row gap-4">
-            <figure className="w-full lg:w-1/3">
-              <img src={placeholder(data.name, 400)} alt={data.name} className="rounded-md" />
+          <div className="flex flex-col lg:flex-row gap-6">
+            <figure className="w-full lg:w-1/3 flex-shrink-0">
+              <img
+                src={placeholder(data.name, 400)}
+                alt={data.name}
+                className="rounded-xl shadow-lg w-full h-auto object-cover"
+              />
             </figure>
+
             <div className="w-full lg:w-2/3">
-              <h3 id="person-modal-title" className="text-2xl font-bold">{data.name}</h3>
-              <div className="mt-2 space-y-1">
-                <p><strong>Gender:</strong> {data.gender}</p>
-                <p><strong>Birth year:</strong> {data.birth_year}</p>
-                <p><strong>Height:</strong> {data.height} cm</p>
-                <p><strong>Mass:</strong> {data.mass} kg</p>
-                <p><strong>Hair colour:</strong> {data.hair_color}</p>
-                <p><strong>Skin colour:</strong> {data.skin_color}</p>
-                <p><strong>Eye colour:</strong> {data.eye_color}</p>
-                <p><strong>Homeworld:</strong> {data.homeworld}</p>
-                <p><strong>Films:</strong> {data.films.length}</p>
-                <p><strong>Species:</strong> {data.species.length}</p>
-                <p><strong>Vehicles:</strong> {data.vehicles.length}</p>
-                <p><strong>Starships:</strong> {data.starships.length}</p>
+              <h3 id="person-modal-title" className="text-3xl font-bold mb-4">
+                {data.name}
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <p>
+                  <span className="font-semibold opacity-70">Gender:</span>{" "}
+                  {data.gender}
+                </p>
+                <p>
+                  <span className="font-semibold opacity-70">Birth Year:</span>{" "}
+                  {data.birth_year}
+                </p>
+                <p>
+                  <span className="font-semibold opacity-70">Height:</span>{" "}
+                  {data.height} cm
+                </p>
+                <p>
+                  <span className="font-semibold opacity-70">Mass:</span>{" "}
+                  {data.mass} kg
+                </p>
+                <p>
+                  <span className="font-semibold opacity-70">Hair Color:</span>{" "}
+                  {data.hair_color}
+                </p>
+                <p>
+                  <span className="font-semibold opacity-70">Skin Color:</span>{" "}
+                  {data.skin_color}
+                </p>
+                <p>
+                  <span className="font-semibold opacity-70">Eye Color:</span>{" "}
+                  {data.eye_color}
+                </p>
               </div>
 
-              <div className="modal-action mt-4">
-                <button className="btn btn-ghost" onClick={onClose}>
+              <div className="divider my-4"></div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="bg-base-200 p-3 rounded-lg text-center">
+                  <div className="text-2xl font-bold">{data.films.length}</div>
+                  <div className="text-xs uppercase tracking-wider opacity-60">
+                    Films
+                  </div>
+                </div>
+                <div className="bg-base-200 p-3 rounded-lg text-center">
+                  <div className="text-2xl font-bold">
+                    {data.vehicles.length}
+                  </div>
+                  <div className="text-xs uppercase tracking-wider opacity-60">
+                    Vehicles
+                  </div>
+                </div>
+                <div className="bg-base-200 p-3 rounded-lg text-center">
+                  <div className="text-2xl font-bold">
+                    {data.starships.length}
+                  </div>
+                  <div className="text-xs uppercase tracking-wider opacity-60">
+                    Starships
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-action mt-6">
+                <button className="btn" onClick={onClose}>
                   Close
                 </button>
               </div>
@@ -96,6 +152,7 @@ export default function PeopleModal({ id, onClose }: Props) {
           </div>
         )}
       </div>
+      <div className="modal-backdrop" onClick={onClose}></div>
     </div>
   );
-}
+};

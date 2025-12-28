@@ -1,32 +1,35 @@
-# StarWars Explorer
+# 🌌 StarWars Explorer
 
-A responsive, interactive React application that allows users to explore the Star Wars universe via the [[SWAPI](https://swapi.dev/)]. This project was built as a technical demonstration of modern React architecture, utilizing React 19, TypeScript, and TanStack Query for robust data management.
+A responsive, interactive React application that allows users to explore the Star Wars universe via the [[SWAPI](https://swapi.info/)]. This project was built as a technical demonstration of modern React architecture, utilizing React 19, TypeScript, and TanStack Query for robust data management.
 
 **Live Demo:** [[Netlify](https://starwarsexplorer-semih.netlify.app/)]
 
 ## 🚀 Quick Start
 
 **Install dependencies:**
+
 ```
 npm install
 ```
 
 **Run the development server:**
+
 ```
 npm run dev
 ```
 
 **Run tests:**
+
 ```
 npm run test
 ```
 
 **Build for production:**
+
 ```
 
 npm run build
 ```
-
 
 ## 🛠 Tech Stack
 
@@ -34,7 +37,7 @@ npm run build
 
 **State Management:** Zustand (with persistence middleware)
 
-**Data Fetching:** TanStack Query (React Query)
+**Data Fetching:** TanStack Query (React Query) v5
 
 **Styling:** Tailwind CSS v4, DaisyUI
 
@@ -49,58 +52,65 @@ I have organized the codebase using a Feature-First (Co-location) architecture. 
 ```
 
 src/
-├── api/                # API fetchers and hooks (React Query wrappers)
-│   ├── films/
-│   ├── people/
-│   └── ...
-├── components/         # Shared / Generic UI components (Atomic design)
+├── api/
+│   └── api.ts          # Centralized API adapter (Swapi.info integration)
+├── components/         # Shared UI components (Atomic design)
 │   ├── Alert/
 │   ├── Card/
 │   ├── Navigation/
-│   └── ...
-├── hooks/              # Custom reusable hooks (usePagination, useFilteredList)
-├── pages/              # Page views and domain-specific components
+│   └── GenericResourcePage/ # The "Master" component for all list views
+├── hooks/              # Reusable Logic
+│   ├── useGetResource.ts    # ONE generic hook to fetch any entity
+│   ├── usePagination.ts
+│   └── useFilteredList.ts
+├── pages/              # Domain Views
 │   ├── films/
-│   │   ├── components/ # Components specific ONLY to the Films page
-│   │   └── Films.tsx
 │   ├── people/
+│   ├── planets/
 │   └── ...
 ├── store/              # Global state (Zustand)
 ├── types/              # TypeScript interfaces
-├── utilities/          # Helper functions and test utils
-└── App.tsx             # Root component
+└── utilities/          # Helper functions
 
 ```
 
 ## 🧠 Architectural Decisions & Trade-offs
 
-During the development of this application, several deliberate trade-offs were made to balance User Experience (UX) with the constraints of the provided API [[SWAPI](https://swapi.dev/)].
+During the development of this application, several deliberate trade-offs were made to balance User Experience (UX) with the constraints of the provided API.
 
-### 1. Data Fetching Strategy (Client-Side vs. Server-Side)
+### 1. The "Adapter" Pattern (API Abstraction)
 
-Decision: The application recursively fetches all pages of a resource (e.g., "People") initially to build a complete client-side dataset.
+Decision: The application uses `swapi.info` (a static JSON mirror of SWAPI) instead of the original `swapi.dev`.
 
-Why: The standard SWAPI endpoints do not support complex server-side filtering (e.g., filtering by "Gender" AND "Name" simultaneously). To provide the requested "interactive" experience, instant search, multi-field filtering, and sorting. I chose to load the dataset into memory.
+Why: The original API is often slow or down. `swapi.info` provides extreme speed but returns flat arrays (no pagination).
 
-Trade-off: This provides a superior UX for small datasets (like Star Wars, which has ~82 people).
+Implementation: I built a custom Adapter Layer in `api.ts` that:
 
-Scalability Note: I recognize this approach is not scalable for production datasets with thousands of records. In a real-world enterprise scenario, I would architect this using Server-Side Pagination and Debounced Search, relying on the backend to filter records to prevent browser performance bottlenecks.
+1. Fetches the full dataset once.
+
+2. Wraps it in a standard structure (`{ count, results: [] }`).
+
+3. Passes it to the UI, which handles Client-Side Pagination and Instant Filtering.
+
+Trade-off: Initial load might be slightly heavier (loading 80 people at once), but subsequent interactions (sorting, filtering, paging) are instant (0ms latency) because the data is in memory.
+
+
 
 ### 2. State Management (Zustand)
 
-Decision: I chose Zustand over Redux or React Context.
+Decision: I chose Zustand over Redux or Context API.
 
-Why: The requirements called for state management. Redux involves significant boilerplate for a project of this size. React Context can lead to unnecessary re-renders if not optimized strictly.
+Why: Redux requires too much boilerplate for this scope. Context API often leads to unnecessary re-renders. Zustand provides a lightweight, atomic state model.
 
-Persistence: I implemented Zustand's persist middleware to save filter states (e.g., if you search for "Skywalker", navigate to "Planets", and return, your search remains). This prevents the frustration of losing context during navigation.
+- Persistence: I implemented `persist` middleware so that users don't lose their active filters if they refresh the page or navigate away.
 
 ### 3. Testing Strategy
 
-Decision: Focused on Integration Testing for page flows and Unit Testing for complex logic.
+Decision: Co-located Integration Tests.
 
-Tests are co-located with the features they test (e.g., People.unit.test.tsx lives inside src/pages/people).
+- Unit Tests: For complex utilities (e.g., filter-utils.ts).
 
-I mocked the API layer (useGetPeople) to ensure tests are deterministic and do not rely on live network calls.
+- Integration Tests: I mocked the API layer (msw or vitest) to test the full flow: User lands on page -> Data Loads -> User Filters -> List Updates.
 
 ### 4. CSS Architecture
 
@@ -109,3 +119,23 @@ Decision: Tailwind CSS combined with DaisyUI.
 Why: Tailwind allows for rapid styling directly in markup, reducing context switching between CSS and JS files. DaisyUI provides semantic component classes (like btn, card, navbar) which speeds up development while maintaining a consistent design system.
 
 Responsiveness: All layouts are mobile-first, utilizing a burger menu for mobile navigation and grid layouts that adapt from single columns to multi-columns on larger screens.
+
+### 5. Performance Optimizations
+
+Decision: Implemented route-based code splitting using `React.lazy` and `Suspense`.
+
+Why: To improve initial load time (FCP) by ensuring users only download the JavaScript for the page they are currently viewing.
+
+Optimization: Added "Hover Preloading" on navigation links. The application begins downloading the chunk for the next route the moment the user hovers over a link, ensuring the page is ready by the time they click (reducing Time to Interactive).
+
+### 6. Generic Resource Engine
+
+Decision: Instead of duplicating logic for People, Planets, and Starships, I implemented a Generic Resource Pattern.
+
+How:
+
+- `useGetResource.ts`: A single hook that handles caching and data fetching for any entity type.
+
+- `GenericResourcePage.tsx`: A generic HOC-style component that handles the layout, error states, loading states, and pagination for all pages.
+
+- Benefit: Adding a new entity (e.g., "Species") takes minutes, not hours.

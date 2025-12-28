@@ -1,13 +1,15 @@
-import { Outlet } from "react-router";
+import React from "react";
 import { Navigation } from "./components/Navigation/Navigation";
 
-export const Layout = () => {
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+export const Layout = ({ children }: LayoutProps) => {
   return (
     <>
       <Navigation />
-      <div className="container mx-auto px-4">
-        <Outlet />
-      </div>
+      <div className="container mx-auto px-4">{children}</div>
     </>
   );
 };

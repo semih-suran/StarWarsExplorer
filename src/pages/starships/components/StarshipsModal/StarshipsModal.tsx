@@ -19,7 +19,7 @@ export default function StarshipsModal({ id, onClose }: Props) {
     queryKey: ["starship", id],
     queryFn: () => fetchStarship(id!),
     enabled: Boolean(id),
-    staleTime: API_CONFIG.staleTime, // 1 minute
+    staleTime: API_CONFIG.staleTime,
   });
 
   if (!id) return null;
