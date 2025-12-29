@@ -1,69 +1,46 @@
-import { useCallback, useMemo } from "react";
-import { useUiStore } from "@/store/useUiStore";
-import { useGetFilms } from "@/api/films/use-get-films";
-import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
-import type { Film } from "@/types/film";
-
+import { useCallback } from "react";
+import { useGetResource } from "@/hooks/useGetResource";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
+import { getFilms } from "@/api/api";
 import { GenericResourcePage } from "@/components";
+import { FilmsList } from "./components/FilmsList/FilmsList";
 import {
-  POSTERS_BY_EPISODE,
   FilmsFilterForm,
   type FilmsFormData,
-  FilmsList,
-  FilmsModal,
-  HeroCarousel,
-} from ".";
+} from "./components/FilmsFilterForm/FilmsFilterForm";
+import FilmsModal from "./components/FilmsModal/FilmsModal";
+import { matchesSearch } from "@/utilities/filter-utils";
+import type { IFilm } from "@/types";
 
-export const filmPredicate = (film: Film, f: FilmsFormData) => {
-  const nameMatch = matchesSearch(film.title, f.name);
-  const directorMatch = matchesExact(film.director, f.director);
-  return nameMatch && directorMatch;
+const filmsPredicate = (film: IFilm, filters: FilmsFormData) => {
+  const titleMatch = matchesSearch(film.title, filters.name);
+  const directorMatch = matchesSearch(film.director, filters.director);
+  return titleMatch && directorMatch;
 };
 
+const INITIAL_FILTERS: FilmsFormData = { name: "", director: "" };
+
 export const Films = () => {
-  const { filmFilters, setFilmFilters, resetFilmFilters } = useUiStore();
-  const { data, isLoading, error } = useGetFilms();
+  const { filters, setFilters, resetFilters } = useUrlFilters(INITIAL_FILTERS);
 
-  const predicate = useCallback(filmPredicate, []);
+  const { data, isLoading, error } = useGetResource("films", getFilms, 1, filters.name);
 
-  const carouselItems = useMemo(() => {
-    return Object.keys(POSTERS_BY_EPISODE)
-      .map(Number)
-      .sort((a, b) => a - b)
-      .map((n) => ({
-        img: POSTERS_BY_EPISODE[n],
-        title: "",
-        subtitle: "",
-      }));
-  }, []);
-
-  const directorOptions = useMemo(() => {
-    if (!data) return [];
-    const directors = Array.from(
-      new Set(data.map((f) => (f.director ?? "").trim()).filter(Boolean))
-    );
-    return directors.sort().map((d) => ({ id: d, label: d }));
-  }, [data]);
+  const predicate = useCallback(filmsPredicate, []);
 
   return (
-    <>
-      <HeroCarousel items={carouselItems} intervalMs={3000} fadeMs={700} />
-
-      <GenericResourcePage<Film, FilmsFormData>
-        title="Films"
-        data={data}
-        isLoading={isLoading}
-        error={error}
-        filters={filmFilters}
-        setFilters={setFilmFilters}
-        resetFilters={resetFilmFilters}
-        predicate={predicate}
-        FilterForm={FilmsFilterForm}
-        List={FilmsList}
-        Modal={FilmsModal}
-        extraFilterProps={{ directorOptions }}
-      />
-    </>
+    <GenericResourcePage
+      title="Films"
+      data={data?.results || []}
+      isLoading={isLoading}
+      error={error}
+      filters={filters}
+      setFilters={setFilters}
+      resetFilters={resetFilters}
+      predicate={predicate}
+      FilterForm={FilmsFilterForm}
+      List={FilmsList}
+      Modal={FilmsModal}
+    />
   );
 };
 

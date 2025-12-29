@@ -1,34 +1,41 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import type { IFilm } from "@/types";
 
 export type FilmsFormData = {
-  name?: string;
-  director?: string;
+  name: string;
+  director: string;
 };
-
-type Option = { id: string; label: string };
 
 type Props = {
   onSubmit?: (data: FilmsFormData) => void;
-  live?: boolean;
+  onReset?: () => void;
   defaultValues?: FilmsFormData;
-  directorOptions?: Option[];
+  resourceList?: IFilm[];
 };
 
 export const FilmsFilterForm = ({
   onSubmit = () => {},
-  live = false,
+  onReset = () => {},
   defaultValues,
-  directorOptions = [],
+  resourceList = [],
 }: Props) => {
-  const { register, handleSubmit, watch, reset } = useForm<FilmsFormData>({
+  const { register, handleSubmit, reset } = useForm<FilmsFormData>({
     defaultValues: defaultValues ?? { name: "", director: "" },
   });
 
-  const watched = watch();
+  const directors = useMemo(() => {
+    const allDirectors = resourceList.flatMap((film) =>
+      film.director.split(",").map((d) => d.trim())
+    );
+    return Array.from(new Set(allDirectors)).sort();
+  }, [resourceList]);
+
   useEffect(() => {
-    if (live) onSubmit(watched);
-  }, [watched.name, watched.director]);
+    if (defaultValues) {
+      reset(defaultValues);
+    }
+  }, [defaultValues, reset]);
 
   return (
     <form
@@ -43,8 +50,7 @@ export const FilmsFilterForm = ({
           {...register("name")}
           className="input input-bordered w-full"
           type="text"
-          placeholder="Search by title"
-          aria-label="Filter by title"
+          placeholder="Search by title..."
         />
       </div>
 
@@ -52,15 +58,11 @@ export const FilmsFilterForm = ({
         <label className="label">
           <span className="label-text">Director</span>
         </label>
-        <select
-          {...register("director")}
-          className="select select-bordered w-full"
-          aria-label="Filter by director"
-        >
-          <option value="">Any</option>
-          {directorOptions.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.label}
+        <select {...register("director")} className="select select-bordered w-full">
+          <option value="">Any Director</option>
+          {directors.map((director) => (
+            <option key={director} value={director}>
+              {director}
             </option>
           ))}
         </select>
@@ -75,7 +77,7 @@ export const FilmsFilterForm = ({
           className="btn btn-ghost"
           onClick={() => {
             reset({ name: "", director: "" });
-            onSubmit({ name: "", director: "" });
+            onReset();
           }}
         >
           Reset

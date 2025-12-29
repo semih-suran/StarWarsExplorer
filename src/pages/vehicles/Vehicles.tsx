@@ -1,61 +1,45 @@
-import { useCallback, useMemo } from "react";
-import { useUiStore } from "@/store/useUiStore";
+import { useCallback } from "react";
 import { useGetResource } from "@/hooks/useGetResource";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { getVehicles } from "@/api/api";
-import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
-import type { IVehicle } from "@/types";
-
 import { GenericResourcePage } from "@/components";
+import { VehiclesList } from "./components/VehiclesList/VehiclesList";
 import {
-  VehiclesList,
-  VehiclesModal,
   VehiclesFilterForm,
   type VehiclesFormData,
-} from ".";
+} from "./components/VehiclesFilterForm/VehiclesFilterForm";
+import VehiclesModal from "./components/VehiclesModal/VehiclesModal";
+import { matchesSearch } from "@/utilities/filter-utils";
+import type { IVehicle } from "@/types";
 
-export const vehiclePredicate = (vehicle: IVehicle, f: VehiclesFormData) => {
-  const nameMatch = matchesSearch(vehicle.name, f.name);
-  const classMatch = matchesExact(vehicle.vehicle_class, f.vehicle_class);
+const vehiclesPredicate = (vehicle: IVehicle, filters: VehiclesFormData) => {
+  const nameMatch = matchesSearch(vehicle.name, filters.name);
+  const classMatch = matchesSearch(vehicle.vehicle_class, filters.vehicle_class);
   return nameMatch && classMatch;
 };
 
+const INITIAL_FILTERS: VehiclesFormData = { name: "", vehicle_class: "" };
+
 export const Vehicles = () => {
-  const { vehiclesFilters, setVehiclesFilters, resetVehiclesFilters } =
-    useUiStore();
+  const { filters, setFilters, resetFilters } = useUrlFilters(INITIAL_FILTERS);
 
-  const { data, isLoading, error } = useGetResource(
-    "vehicles",
-    getVehicles,
-    1,
-    vehiclesFilters.name
-  );
+  const { data, isLoading, error } = useGetResource("vehicles", getVehicles, 1, filters.name);
 
-  const predicate = useCallback(vehiclePredicate, []);
-
-  const results = data?.results || [];
-
-  const classOptions = useMemo(() => {
-    if (!results.length) return [];
-    const allClasses = results
-      .map((v) => (v.vehicle_class ?? "").trim().toLowerCase())
-      .filter(Boolean);
-    return Array.from(new Set(allClasses)).sort();
-  }, [results]);
+  const predicate = useCallback(vehiclesPredicate, []);
 
   return (
-    <GenericResourcePage<IVehicle, VehiclesFormData>
+    <GenericResourcePage
       title="Vehicles"
-      data={results}
+      data={data?.results || []}
       isLoading={isLoading}
       error={error}
-      filters={vehiclesFilters}
-      setFilters={setVehiclesFilters}
-      resetFilters={resetVehiclesFilters}
+      filters={filters}
+      setFilters={setFilters}
+      resetFilters={resetFilters}
       predicate={predicate}
       FilterForm={VehiclesFilterForm}
       List={VehiclesList}
       Modal={VehiclesModal}
-      extraFilterProps={{ classOptions }}
     />
   );
 };

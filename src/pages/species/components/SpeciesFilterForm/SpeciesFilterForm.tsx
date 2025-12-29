@@ -1,94 +1,71 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import type { ISpecie } from "@/types";
 
 export type SpeciesFormData = {
-  name?: string;
-  classification?: string;
+  name: string;
+  classification: string;
 };
-
-type Option = { id: string; label: string };
 
 type Props = {
   onSubmit?: (data: SpeciesFormData) => void;
   onReset?: () => void;
-  live?: boolean;
   defaultValues?: SpeciesFormData;
-  classificationOptions?: Option[];
+  resourceList?: ISpecie[];
 };
 
 export const SpeciesFilterForm = ({
   onSubmit = () => {},
   onReset = () => {},
-  live = false,
   defaultValues,
-  classificationOptions = [],
+  resourceList = [],
 }: Props) => {
-  const { register, handleSubmit, watch, reset } = useForm<SpeciesFormData>({
+  const { register, handleSubmit, reset } = useForm<SpeciesFormData>({
     defaultValues: defaultValues ?? { name: "", classification: "" },
   });
 
-  const watchedName = watch("name");
-  const watchedClassification = watch("classification");
+  const classifications = useMemo(() => {
+    const all = resourceList.map((s) => s.classification).filter(Boolean);
+    return Array.from(new Set(all)).sort();
+  }, [resourceList]);
 
   useEffect(() => {
-    if (live) {
-      onSubmit({
-        name: watchedName,
-        classification: watchedClassification,
-      });
-    }
-  }, [live, watchedName, watchedClassification, onSubmit]);
+    if (defaultValues) reset(defaultValues);
+  }, [defaultValues, reset]);
 
   return (
     <form
-      data-testid="filter-form"
       onSubmit={handleSubmit(onSubmit)}
       className="flex gap-4 mb-4 flex-col md:flex-row items-end"
     >
       <div className="w-full">
-        <label className="label">
-          <span className="label-text">Name</span>
-        </label>
+        <label className="label"><span className="label-text">Name</span></label>
         <input
           {...register("name")}
           className="input input-bordered w-full"
           type="text"
-          placeholder="Search by name (e.g. Wookiee)"
-          aria-label="Filter by name"
+          placeholder="Search species..."
         />
       </div>
 
       <div className="w-full max-w-xs">
-        <label className="label">
-          <span className="label-text">Classification</span>
-        </label>
-        <select
-          {...register("classification")}
-          className="select select-bordered w-full"
-          aria-label="Filter by classification"
-        >
+        <label className="label"><span className="label-text">Classification</span></label>
+        <select {...register("classification")} className="select select-bordered w-full">
           <option value="">Any</option>
-          {classificationOptions.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.label}
-            </option>
+          {classifications.map((c) => (
+            <option key={c} value={c}>{c}</option>
           ))}
         </select>
       </div>
 
       <div className="flex gap-2">
-        <button type="submit" className="btn btn-primary" aria-label="Apply filters">
-          Filter
-        </button>
-
+        <button type="submit" className="btn btn-primary">Filter</button>
         <button
           type="button"
           className="btn btn-ghost"
-          aria-label="Reset filters"
           onClick={() => {
             reset({ name: "", classification: "" });
-            onSubmit({ name: "", classification: "" });
-            onReset?.();
+            onReset();
           }}
         >
           Reset
@@ -97,5 +74,3 @@ export const SpeciesFilterForm = ({
     </form>
   );
 };
-
-export default SpeciesFilterForm;
