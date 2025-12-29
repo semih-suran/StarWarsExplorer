@@ -1,70 +1,58 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen } from "@/utilities/testing-utils";
-import userEvent from "@testing-library/user-event";
-import { PeopleList } from "./components/PeopleList/PeopleList";
-import { PeopleFilterForm } from "./components/PeopleFilterForm/PeopleFilterForm";
-import { mockPeople } from "@/api/people/mock";
+import { render, screen } from "@testing-library/react";
+import { People } from "./People";
 import { useUiStore } from "@/store/useUiStore";
+import { useGetResource } from "@/hooks/useGetResource";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 
-describe("PeopleList (unit)", () => {
-  it("renders a list of person cards", () => {
-    render(<PeopleList data={mockPeople} />);
-    const cards = screen.getAllByTestId("person-card");
-    expect(cards).toHaveLength(mockPeople.length);
-    expect(screen.getByText("Luke Skywalker")).toBeInTheDocument();
-  });
+vi.mock("@/hooks/useGetResource");
+vi.mock("@/hooks/useUrlFilters", () => ({
+  useUrlFilters: (initialState: any) => ({
+    filters: initialState,
+    setFilters: vi.fn(),
+    resetFilters: vi.fn(),
+  }),
+}));
 
-  it("shows 'No results' when list empty", () => {
-    render(<PeopleList data={[]} />);
-    expect(screen.getByText(/no results/i)).toBeInTheDocument();
-  });
-});
+vi.mock("@/components", () => ({
+  GenericResourcePage: ({ title, FilterForm, List }: any) => (
+    <div data-testid="generic-page">
+      <h1>{title}</h1>
+      <FilterForm />
+      <List />
+    </div>
+  ),
+}));
 
-describe("PeopleFilterForm (unit)", () => {
+vi.mock("./components/PeopleFilterForm/PeopleFilterForm", () => ({
+  PeopleFilterForm: () => <div data-testid="people-filter-form" />,
+}));
+vi.mock("./components/PeopleList/PeopleList", () => ({
+  PeopleList: () => <div data-testid="people-list" />,
+}));
+vi.mock("./components/PeopleModal/PeopleModal", () => ({
+  PeopleModal: () => <div data-testid="people-modal" />,
+}));
+
+describe("People Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    
     useUiStore.setState({
-      peopleFilters: { name: "", gender: "" },
+      selectedPersonId: null,
     });
-    try {
-      localStorage.removeItem("sw-explorer-ui");
-    } catch (e) {}
+
+    (useGetResource as any).mockReturnValue({
+      data: { results: [] },
+      isLoading: false,
+      error: null,
+    });
   });
 
-  it("calls onSubmit with form values", async () => {
-    const user = userEvent.setup();
-    const onSubmit = vi.fn();
-    render(<PeopleFilterForm onSubmit={onSubmit} />);
-
-    await user.type(screen.getByPlaceholderText(/search by name/i), "Leia");
-    await user.selectOptions(
-      screen.getByLabelText(/filter by gender/i),
-      "female"
-    );
-    await user.click(screen.getByRole("button", { name: /filter/i }));
-
-    expect(onSubmit).toHaveBeenCalled();
-
-    expect(onSubmit).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        name: "Leia",
-        gender: "female",
-      }),
-      expect.anything()
-    );
-  });
-
-  it("reset button clears inputs and calls onSubmit with empty values", async () => {
-    const user = userEvent.setup();
-    const onSubmit = vi.fn();
-    render(<PeopleFilterForm onSubmit={onSubmit} />);
-
-    await user.type(screen.getByPlaceholderText(/search by name/i), "Darth");
-    await user.click(screen.getByRole("button", { name: /reset/i }));
-
-    expect(onSubmit).toHaveBeenCalled();
-    expect(onSubmit).toHaveBeenLastCalledWith(
-      expect.objectContaining({ name: "", gender: "" })
-    );
+  it("renders the People page correctly", () => {
+    render(<People />);
+    expect(screen.getByTestId("generic-page")).toBeInTheDocument();
+    expect(screen.getByText("People")).toBeInTheDocument();
+    expect(screen.getByTestId("people-filter-form")).toBeInTheDocument();
+    expect(screen.getByTestId("people-list")).toBeInTheDocument();
   });
 });

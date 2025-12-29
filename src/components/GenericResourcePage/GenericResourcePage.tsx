@@ -1,35 +1,37 @@
 import { useState } from "react";
-import { usePagination } from "@/hooks/usePagination";
-import { useFilteredList } from "@/hooks/useFilteredList";
 import { Loading } from "@/components/Loading/Loading";
 import { Alert } from "@/components/Alert/Alert";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
+import { usePagination } from "@/hooks/usePagination";
+import { useFilteredList } from "@/hooks/useFilteredList";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 
-interface Props<T, F> {
+type Props<T, F> = {
   title: string;
-  data: T[] | undefined;
+  data: T[];
   isLoading: boolean;
   error: Error | null;
-
   filters: F;
-  setFilters: (f: F) => void;
+  setFilters: (filters: Partial<F>) => void;
   resetFilters: () => void;
   predicate: (item: T, filters: F) => boolean;
-
   FilterForm: React.ComponentType<{
-    onSubmit: (f: F) => void;
+    onSubmit: (data: F) => void;
     onReset: () => void;
-    defaultValues: F;
-    [key: string]: any;
+    defaultValues?: F;
+    resourceList?: T[];
   }>;
-  List: React.ComponentType<{ data: T[]; onView: (id: string) => void }>;
-  Modal: React.ComponentType<{ id: string; onClose: () => void }>;
+  List: React.ComponentType<{
+    data: T[];
+    onView: (id: string) => void;
+  }>;
+  Modal: React.ComponentType<{
+    id: string | null; 
+    onClose: () => void;
+  }>;
+};
 
-  extraFilterProps?: Record<string, any>;
-}
-
-export const GenericResourcePage = <T, F>({
+export const GenericResourcePage = <T, F extends Record<string, any>>({
   title,
   data,
   isLoading,
@@ -41,56 +43,71 @@ export const GenericResourcePage = <T, F>({
   FilterForm,
   List,
   Modal,
-  extraFilterProps = {},
 }: Props<T, F>) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const filtered = useFilteredList(data ?? [], filters, predicate);
+  const filteredList = useFilteredList(data || [], filters, predicate);
 
-  const { page, totalPages, paginated, prev, next, setPage } = usePagination(
-    filtered,
-    1,
-    10
-  );
+  const {
+    paginated: paginatedList,
+    page,
+    totalPages,
+    next: nextPage,
+    prev: prevPage,
+  } = usePagination(filteredList || []);
+
+  const handleOpenModal = (id: string) => {
+    setSelectedId(id);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedId(null);
+  };
 
   if (isLoading) return <Loading />;
-  if (error) return <Alert message={error.message} />;
-
-  const handleFilter = (form: F) => {
-    setFilters(form);
-    setPage(1);
-  };
-
-  const handleReset = () => {
-    resetFilters();
-    setPage(1);
-  };
+  if (error) return <Alert message={error.message} type="error" />;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-black mb-8 tracking-tight">{title}</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6 text-primary">{title}</h1>
 
-      <FilterForm
-        onSubmit={handleFilter}
-        onReset={handleReset}
-        defaultValues={filters}
-        {...extraFilterProps}
-      />
+      <div className="bg-base-200 p-4 rounded-lg shadow-md mb-6">
+        <FilterForm
+          onSubmit={setFilters}
+          onReset={resetFilters}
+          defaultValues={filters}
+          resourceList={data}
+        />
+      </div>
 
-      <ActiveFilters filters={filters as any} onReset={handleReset} />
+      <ActiveFilters filters={filters} onReset={resetFilters} />
 
-      <List data={paginated} onView={(id) => setSelectedId(id)} />
+      {filteredList.length === 0 ? (
+        <Alert message="No results found matching your criteria." type="info" />
+      ) : (
+        <>
+          <div className="mb-4 text-sm opacity-70">
+            Showing {filteredList.length} results
+          </div>
 
-      <PaginationControls
-        page={page}
-        totalPages={totalPages}
-        onPrev={prev}
-        onNext={next}
-      />
+          <List 
+            data={paginatedList as T[]} 
+            onView={handleOpenModal} 
+          />
 
-      {selectedId && (
-        <Modal id={selectedId} onClose={() => setSelectedId(null)} />
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            onNext={nextPage}
+            onPrev={prevPage}
+          />
+        </>
       )}
+
+      <Modal
+        id={selectedId}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

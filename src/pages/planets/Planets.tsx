@@ -1,71 +1,45 @@
-import { useCallback, useMemo } from "react";
-import { useUiStore } from "@/store/useUiStore";
+import { useCallback } from "react";
 import { useGetResource } from "@/hooks/useGetResource";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { getPlanets } from "@/api/api";
+import { GenericResourcePage } from "@/components";
+import { PlanetsList } from "./components/PlanetsList/PlanetsList";
+import {
+  PlanetsFilterForm,
+  type PlanetsFormData,
+} from "./components/PlanetsFilterForm/PlanetsFilterForm";
+import PlanetsModal from "./components/PlanetsModal/PlanetsModal";
 import { matchesSearch } from "@/utilities/filter-utils";
 import type { IPlanet } from "@/types";
 
-import { GenericResourcePage } from "@/components";
-import {
-  PlanetsList,
-  PlanetsModal,
-  PlanetsFilterForm,
-  type PlanetsFormData,
-} from ".";
-
-export const planetPredicate = (planet: IPlanet, f: PlanetsFormData) => {
-  const nameMatch = matchesSearch(planet.name, f.name);
-
-  if (!f.terrain) return nameMatch;
-  const filterTerrain = f.terrain.trim().toLowerCase();
-
-  const planetTerrains = planet.terrain
-    .split(",")
-    .map((t) => t.trim().toLowerCase());
-
-  const terrainMatch = planetTerrains.includes(filterTerrain);
-
+export const planetsPredicate = (planet: IPlanet, filters: PlanetsFormData) => {
+  const nameMatch = matchesSearch(planet.name, filters.name);
+  const terrainMatch = matchesSearch(planet.terrain, filters.terrain);
   return nameMatch && terrainMatch;
 };
 
+const INITIAL_FILTERS: PlanetsFormData = { name: "", terrain: "" };
+
 export const Planets = () => {
-  const { planetsFilters, setPlanetsFilters, resetPlanetsFilters } =
-    useUiStore();
-  
-  const { data, isLoading, error } = useGetResource(
-    "planets",
-    getPlanets,
-    1,
-    planetsFilters.name
-  );
+  const { filters, setFilters, resetFilters } = useUrlFilters(INITIAL_FILTERS);
 
-  const predicate = useCallback(planetPredicate, []);
+  const { data, isLoading, error } = useGetResource("planets", getPlanets, 1, filters.name);
 
-  const results = data?.results || [];
-
-  const terrainOptions = useMemo(() => {
-    if (!results.length) return [];
-    const allTerrains = results.flatMap((p) =>
-      p.terrain.split(",").map((t) => t.trim().toLowerCase())
-    );
-    const unique = Array.from(new Set(allTerrains)).filter(Boolean);
-    return unique.sort();
-  }, [results]);
+  const predicate = useCallback(planetsPredicate, []);
 
   return (
-    <GenericResourcePage<IPlanet, PlanetsFormData>
+    <GenericResourcePage
       title="Planets"
-      data={results}
+      data={data?.results || []}
       isLoading={isLoading}
       error={error}
-      filters={planetsFilters}
-      setFilters={setPlanetsFilters}
-      resetFilters={resetPlanetsFilters}
+      filters={filters}
+      setFilters={setFilters}
+      resetFilters={resetFilters}
       predicate={predicate}
       FilterForm={PlanetsFilterForm}
       List={PlanetsList}
       Modal={PlanetsModal}
-      extraFilterProps={{ terrainOptions }}
     />
   );
 };

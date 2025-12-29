@@ -1,51 +1,39 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import type { IPlanet } from "@/types";
 
 export type PlanetsFormData = {
-  name?: IPlanet["name"];
-  terrain?: IPlanet["terrain"] | "";
+  name: string;
+  terrain: string;
 };
 
 type Props = {
   onSubmit?: (data: PlanetsFormData) => void;
   onReset?: () => void;
-  live?: boolean;
   defaultValues?: PlanetsFormData;
-  terrainOptions?: string[];
+  resourceList?: IPlanet[];
 };
 
 export const PlanetsFilterForm = ({
   onSubmit = () => {},
   onReset = () => {},
-  live = false,
   defaultValues,
-  terrainOptions = [],
+  resourceList = [],
 }: Props) => {
-  const { register, handleSubmit, watch, reset } = useForm<PlanetsFormData>({
+  const { register, handleSubmit, reset } = useForm<PlanetsFormData>({
     defaultValues: defaultValues ?? { name: "", terrain: "" },
   });
 
-  const watched = watch();
+  const terrains = useMemo(() => {
+    const all = resourceList.flatMap((p) =>
+      p.terrain.split(",").map((t) => t.trim())
+    );
+    return Array.from(new Set(all)).sort();
+  }, [resourceList]);
+
   useEffect(() => {
-    if (live) onSubmit(watched);
-  }, [watched.name, watched.terrain]);
-
-  const fallbackOptions = [
-    "desert",
-    "grasslands",
-    "mountains",
-    "jungle",
-    "forests",
-    "swamp",
-    "tundra",
-    "ice",
-    "ocean",
-    "volcano",
-    "urban",
-  ];
-
-  const options = terrainOptions.length ? terrainOptions : fallbackOptions;
+    if (defaultValues) reset(defaultValues);
+  }, [defaultValues, reset]);
 
   return (
     <form
@@ -60,8 +48,7 @@ export const PlanetsFilterForm = ({
           {...register("name")}
           className="input input-bordered w-full"
           type="text"
-          placeholder="Search by name (e.g. Tatooine)"
-          aria-label="Filter by name"
+          placeholder="Search planets..."
         />
       </div>
 
@@ -69,31 +56,24 @@ export const PlanetsFilterForm = ({
         <label className="label">
           <span className="label-text">Terrain</span>
         </label>
-        <select
-          {...register("terrain")}
-          className="select select-bordered w-full"
-          aria-label="Filter by terrain"
-        >
-          <option value="">Any</option>
-          {options.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt.charAt(0).toUpperCase() + opt.slice(1)}
+        <select {...register("terrain")} className="select select-bordered w-full">
+          <option value="">Any Terrain</option>
+          {terrains.map((t) => (
+            <option key={t} value={t}>
+              {t}
             </option>
           ))}
         </select>
       </div>
 
       <div className="flex gap-2">
-        <button type="submit" className="btn btn-primary">
-          Filter
-        </button>
+        <button type="submit" className="btn btn-primary">Filter</button>
         <button
           type="button"
           className="btn btn-ghost"
           onClick={() => {
             reset({ name: "", terrain: "" });
-            onSubmit({ name: "", terrain: "" });
-            onReset?.();
+            onReset();
           }}
         >
           Reset

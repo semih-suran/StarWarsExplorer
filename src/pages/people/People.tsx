@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { useUiStore } from "@/store/useUiStore";
 import { useGetResource } from "@/hooks/useGetResource";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { getPeople } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { PeopleList } from "./components/PeopleList/PeopleList";
@@ -19,14 +19,16 @@ const peoplePredicate = (person: IPeople, filters: PeopleFormData) => {
   return nameMatch && genderMatch;
 };
 
+const INITIAL_FILTERS: PeopleFormData = { name: "", gender: "" };
+
 export const People = () => {
-  const { peopleFilters } = useUiStore();
+  const { filters, setFilters, resetFilters } = useUrlFilters(INITIAL_FILTERS);
 
   const { data, isLoading, error } = useGetResource(
     "people",
     getPeople,
     1,
-    peopleFilters.name
+    filters.name
   );
 
   const predicate = useCallback(peoplePredicate, []);
@@ -37,9 +39,9 @@ export const People = () => {
       data={data?.results || []}
       isLoading={isLoading}
       error={error}
-      filters={peopleFilters}
-      setFilters={(f) => useUiStore.getState().setPeopleFilters(f)}
-      resetFilters={() => useUiStore.getState().resetPeopleFilters()}
+      filters={filters}
+      setFilters={setFilters}
+      resetFilters={resetFilters}
       predicate={predicate}
       FilterForm={PeopleFilterForm}
       List={PeopleList}

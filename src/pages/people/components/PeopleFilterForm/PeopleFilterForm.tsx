@@ -24,12 +24,19 @@ export const PeopleFilterForm = ({
     defaultValues: defaultValues ?? { name: "", gender: "" },
   });
 
+  useEffect(() => {
+    if (defaultValues) {
+      reset(defaultValues);
+    }
+  }, [defaultValues, reset]);
+
   const watched = watch();
+
   useEffect(() => {
     if (live) {
       onSubmit(watched);
     }
-  }, [watched.name, watched.gender]);
+  }, [JSON.stringify(watched)]);
 
   return (
     <form
@@ -74,8 +81,9 @@ export const PeopleFilterForm = ({
           type="button"
           className="btn btn-ghost"
           onClick={() => {
-            reset({ name: "", gender: "" });
-            onSubmit({ name: "", gender: "" });
+            const empty = { name: "", gender: "" };
+            reset(empty);
+            onSubmit(empty);
             onReset();
           }}
         >
