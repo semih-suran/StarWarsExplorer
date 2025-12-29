@@ -1,6 +1,4 @@
 import { useCallback } from "react";
-import { useGetResource } from "@/hooks/useGetResource";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { getFilms } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { FilmsList } from "./components/FilmsList/FilmsList";
@@ -11,6 +9,7 @@ import {
 import FilmsModal from "./components/FilmsModal/FilmsModal";
 import { matchesSearch } from "@/utilities/filter-utils";
 import type { IFilm } from "@/types";
+import { useResourceLogic } from "@/hooks/useResourceLogic";
 
 const filmsPredicate = (film: IFilm, filters: FilmsFormData) => {
   const titleMatch = matchesSearch(film.title, filters.name);
@@ -21,16 +20,30 @@ const filmsPredicate = (film: IFilm, filters: FilmsFormData) => {
 const INITIAL_FILTERS: FilmsFormData = { name: "", director: "" };
 
 export const Films = () => {
-  const { filters, setFilters, resetFilters } = useUrlFilters(INITIAL_FILTERS);
-
-  const { data, isLoading, error } = useGetResource("films", getFilms, 1, filters.name);
-
   const predicate = useCallback(filmsPredicate, []);
+
+  const { 
+    data, 
+    allData,
+    isLoading, 
+    error, 
+    filters, 
+    setFilters, 
+    resetFilters,
+    pagination 
+  } = useResourceLogic({
+    resourceName: "films",
+    fetcher: getFilms,
+    initialFilters: INITIAL_FILTERS,
+    searchParamName: "name",
+    predicate,
+  });
 
   return (
     <GenericResourcePage
       title="Films"
-      data={data?.results || []}
+      data={data}
+      allData={allData}
       isLoading={isLoading}
       error={error}
       filters={filters}
@@ -40,6 +53,7 @@ export const Films = () => {
       FilterForm={FilmsFilterForm}
       List={FilmsList}
       Modal={FilmsModal}
+      pagination={pagination}
     />
   );
 };

@@ -1,6 +1,4 @@
 import { useCallback } from "react";
-import { useGetResource } from "@/hooks/useGetResource";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { getPlanets } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { PlanetsList } from "./components/PlanetsList/PlanetsList";
@@ -11,6 +9,7 @@ import {
 import PlanetsModal from "./components/PlanetsModal/PlanetsModal";
 import { matchesSearch } from "@/utilities/filter-utils";
 import type { IPlanet } from "@/types";
+import { useResourceLogic } from "@/hooks/useResourceLogic";
 
 export const planetsPredicate = (planet: IPlanet, filters: PlanetsFormData) => {
   const nameMatch = matchesSearch(planet.name, filters.name);
@@ -21,16 +20,30 @@ export const planetsPredicate = (planet: IPlanet, filters: PlanetsFormData) => {
 const INITIAL_FILTERS: PlanetsFormData = { name: "", terrain: "" };
 
 export const Planets = () => {
-  const { filters, setFilters, resetFilters } = useUrlFilters(INITIAL_FILTERS);
-
-  const { data, isLoading, error } = useGetResource("planets", getPlanets, 1, filters.name);
-
   const predicate = useCallback(planetsPredicate, []);
+
+  const { 
+    data, 
+    allData,
+    isLoading, 
+    error, 
+    filters, 
+    setFilters, 
+    resetFilters,
+    pagination 
+  } = useResourceLogic({
+    resourceName: "planets",
+    fetcher: getPlanets,
+    initialFilters: INITIAL_FILTERS,
+    searchParamName: "name",
+    predicate,
+  });
 
   return (
     <GenericResourcePage
       title="Planets"
-      data={data?.results || []}
+      data={data}
+      allData={allData}
       isLoading={isLoading}
       error={error}
       filters={filters}
@@ -40,6 +53,7 @@ export const Planets = () => {
       FilterForm={PlanetsFilterForm}
       List={PlanetsList}
       Modal={PlanetsModal}
+      pagination={pagination}
     />
   );
 };
