@@ -1,6 +1,4 @@
 import { useCallback } from "react";
-import { useGetResource } from "@/hooks/useGetResource";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { getPeople } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { PeopleList } from "./components/PeopleList/PeopleList";
@@ -11,32 +9,41 @@ import {
 import { PeopleModal } from "./components/PeopleModal/PeopleModal";
 import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
 import type { IPeople } from "@/types";
+import { useResourceLogic } from "@/hooks/useResourceLogic";
 
 const peoplePredicate = (person: IPeople, filters: PeopleFormData) => {
   const nameMatch = matchesSearch(person.name, filters.name);
   const genderMatch = matchesExact(person.gender, filters.gender);
-
   return nameMatch && genderMatch;
 };
 
 const INITIAL_FILTERS: PeopleFormData = { name: "", gender: "" };
 
 export const People = () => {
-  const { filters, setFilters, resetFilters } = useUrlFilters(INITIAL_FILTERS);
-
-  const { data, isLoading, error } = useGetResource(
-    "people",
-    getPeople,
-    1,
-    filters.name
-  );
-
   const predicate = useCallback(peoplePredicate, []);
 
-  return (
+  const { 
+    data, 
+    allData,
+    isLoading, 
+    error, 
+    filters, 
+    setFilters, 
+    resetFilters,
+    pagination 
+  } = useResourceLogic({
+    resourceName: "people",
+    fetcher: getPeople,
+    initialFilters: INITIAL_FILTERS,
+    searchParamName: "name",
+    predicate,
+  });
+
+return (
     <GenericResourcePage
       title="People"
-      data={data?.results || []}
+      data={data}
+      allData={allData}
       isLoading={isLoading}
       error={error}
       filters={filters}
@@ -46,6 +53,7 @@ export const People = () => {
       FilterForm={PeopleFilterForm}
       List={PeopleList}
       Modal={PeopleModal}
+      pagination={pagination}
     />
   );
 };

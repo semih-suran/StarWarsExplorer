@@ -6,9 +6,18 @@ import { usePagination } from "@/hooks/usePagination";
 import { useFilteredList } from "@/hooks/useFilteredList";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 
+type PaginationOverride = {
+  page: number;
+  totalPages: number;
+  nextPage: () => void;
+  prevPage: () => void;
+  goToPage: (p: number) => void;
+};
+
 type Props<T, F> = {
   title: string;
   data: T[];
+  allData?: T[];
   isLoading: boolean;
   error: Error | null;
   filters: F;
@@ -26,14 +35,16 @@ type Props<T, F> = {
     onView: (id: string) => void;
   }>;
   Modal: React.ComponentType<{
-    id: string | null; 
+    id: string | null;
     onClose: () => void;
   }>;
+  pagination?: PaginationOverride;
 };
 
 export const GenericResourcePage = <T, F extends Record<string, any>>({
   title,
   data,
+  allData,
   isLoading,
   error,
   filters,
@@ -43,18 +54,30 @@ export const GenericResourcePage = <T, F extends Record<string, any>>({
   FilterForm,
   List,
   Modal,
+  pagination,
 }: Props<T, F>) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const isServerSide = !!pagination;
 
   const filteredList = useFilteredList(data || [], filters, predicate);
 
   const {
-    paginated: paginatedList,
-    page,
-    totalPages,
-    next: nextPage,
-    prev: prevPage,
+    paginated: internalPaginated,
+    page: internalPage,
+    totalPages: internalTotalPages,
+    next: internalNext,
+    prev: internalPrev,
   } = usePagination(filteredList || []);
+
+  const displayList = isServerSide ? data : (internalPaginated as T[]);
+
+  const displayPage = isServerSide ? pagination.page : internalPage;
+  const displayTotalPages = isServerSide
+    ? pagination.totalPages
+    : internalTotalPages;
+  const handleNext = isServerSide ? pagination.nextPage : internalNext;
+  const handlePrev = isServerSide ? pagination.prevPage : internalPrev;
 
   const handleOpenModal = (id: string) => {
     setSelectedId(id);
@@ -73,41 +96,37 @@ export const GenericResourcePage = <T, F extends Record<string, any>>({
 
       <div className="bg-base-200 p-4 rounded-lg shadow-md mb-6">
         <FilterForm
-          onSubmit={setFilters}
+          onSubmit={(data) => {
+            setFilters(data);
+          }}
           onReset={resetFilters}
           defaultValues={filters}
-          resourceList={data}
+          resourceList={allData || data}
         />
       </div>
 
       <ActiveFilters filters={filters} onReset={resetFilters} />
 
-      {filteredList.length === 0 ? (
+      {displayList.length === 0 ? (
         <Alert message="No results found matching your criteria." type="info" />
       ) : (
         <>
           <div className="mb-4 text-sm opacity-70">
-            Showing {filteredList.length} results
+            Showing {displayList.length} results
           </div>
 
-          <List 
-            data={paginatedList as T[]} 
-            onView={handleOpenModal} 
-          />
+          <List data={displayList} onView={handleOpenModal} />
 
           <PaginationControls
-            page={page}
-            totalPages={totalPages}
-            onNext={nextPage}
-            onPrev={prevPage}
+            page={displayPage}
+            totalPages={displayTotalPages}
+            onNext={handleNext}
+            onPrev={handlePrev}
           />
         </>
       )}
 
-      <Modal
-        id={selectedId}
-        onClose={handleCloseModal}
-      />
+      <Modal id={selectedId} onClose={handleCloseModal} />
     </div>
   );
 };

@@ -1,95 +1,50 @@
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import type { IPeople } from "@/types";
+import { useEffect } from "react";
 
-export type PeopleFormData = {
-  name?: IPeople["name"];
-  gender?: IPeople["gender"] | "";
-};
+export type PeopleFormData = { name: string; gender: string };
 
-type Props = {
-  onSubmit?: (data: PeopleFormData) => void;
-  onReset?: () => void;
-  live?: boolean;
-  defaultValues?: PeopleFormData;
-};
-
-export const PeopleFilterForm = ({
-  onSubmit = () => {},
-  onReset = () => {},
-  live = false,
-  defaultValues,
-}: Props) => {
-  const { register, handleSubmit, watch, reset } = useForm<PeopleFormData>({
-    defaultValues: defaultValues ?? { name: "", gender: "" },
+export const PeopleFilterForm = ({ onSubmit, onReset, defaultValues }: any) => {
+  const { register, getValues, reset } = useForm({
+    defaultValues: defaultValues || { name: "", gender: "" },
   });
 
   useEffect(() => {
-    if (defaultValues) {
-      reset(defaultValues);
-    }
+    reset(defaultValues);
   }, [defaultValues, reset]);
 
-  const watched = watch();
-
-  useEffect(() => {
-    if (live) {
-      onSubmit(watched);
-    }
-  }, [JSON.stringify(watched)]);
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const values = getValues();
+    onSubmit(values);
+  };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex gap-4 mb-4 flex-col md:flex-row items-end"
-    >
-      <div className="w-full">
-        <label className="label">
-          <span className="label-text">Name</span>
-        </label>
+    <form onSubmit={handleManualSubmit} className="flex gap-4 items-end">
+      <div className="flex-1">
+        <label className="label font-bold">Name</label>
         <input
           {...register("name")}
           className="input input-bordered w-full"
-          type="text"
-          placeholder="Search by name (e.g. Luke)"
-          aria-label="Filter by name"
+          placeholder="Search..."
         />
       </div>
-
-      <div className="w-full max-w-xs">
-        <label className="label">
-          <span className="label-text">Gender</span>
-        </label>
+      <div className="flex-1">
+        <label className="label font-bold">Gender</label>
         <select
           {...register("gender")}
           className="select select-bordered w-full"
-          aria-label="Filter by gender"
         >
           <option value="">Any</option>
           <option value="male">Male</option>
           <option value="female">Female</option>
-          <option value="n/a">N/A</option>
-          <option value="hermaphrodite">Hermaphrodite</option>
         </select>
       </div>
-
-      <div className="flex gap-2">
-        <button type="submit" className="btn btn-primary">
-          Filter
-        </button>
-        <button
-          type="button"
-          className="btn btn-ghost"
-          onClick={() => {
-            const empty = { name: "", gender: "" };
-            reset(empty);
-            onSubmit(empty);
-            onReset();
-          }}
-        >
-          Reset
-        </button>
-      </div>
+      <button type="submit" className="btn btn-primary">
+        Filter
+      </button>
+      <button type="button" className="btn btn-ghost" onClick={onReset}>
+        Reset
+      </button>
     </form>
   );
 };

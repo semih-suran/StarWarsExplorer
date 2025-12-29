@@ -1,6 +1,4 @@
 import { useCallback } from "react";
-import { useGetResource } from "@/hooks/useGetResource";
-import { useUrlFilters } from "@/hooks/useUrlFilters";
 import { getVehicles } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { VehiclesList } from "./components/VehiclesList/VehiclesList";
@@ -11,6 +9,7 @@ import {
 import VehiclesModal from "./components/VehiclesModal/VehiclesModal";
 import { matchesSearch } from "@/utilities/filter-utils";
 import type { IVehicle } from "@/types";
+import { useResourceLogic } from "@/hooks/useResourceLogic";
 
 const vehiclesPredicate = (vehicle: IVehicle, filters: VehiclesFormData) => {
   const nameMatch = matchesSearch(vehicle.name, filters.name);
@@ -21,16 +20,30 @@ const vehiclesPredicate = (vehicle: IVehicle, filters: VehiclesFormData) => {
 const INITIAL_FILTERS: VehiclesFormData = { name: "", vehicle_class: "" };
 
 export const Vehicles = () => {
-  const { filters, setFilters, resetFilters } = useUrlFilters(INITIAL_FILTERS);
-
-  const { data, isLoading, error } = useGetResource("vehicles", getVehicles, 1, filters.name);
-
   const predicate = useCallback(vehiclesPredicate, []);
+
+  const { 
+    data, 
+    allData,
+    isLoading, 
+    error, 
+    filters, 
+    setFilters, 
+    resetFilters,
+    pagination 
+  } = useResourceLogic({
+    resourceName: "vehicles",
+    fetcher: getVehicles,
+    initialFilters: INITIAL_FILTERS,
+    searchParamName: "name",
+    predicate,
+  });
 
   return (
     <GenericResourcePage
       title="Vehicles"
-      data={data?.results || []}
+      data={data}
+      allData={allData}
       isLoading={isLoading}
       error={error}
       filters={filters}
@@ -40,6 +53,7 @@ export const Vehicles = () => {
       FilterForm={VehiclesFilterForm}
       List={VehiclesList}
       Modal={VehiclesModal}
+      pagination={pagination}
     />
   );
 };
