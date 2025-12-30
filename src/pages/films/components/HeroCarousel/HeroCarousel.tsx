@@ -7,9 +7,9 @@ type Item = {
 };
 
 type Props = {
-  items?: Item[];             // optional list of slides
-  intervalMs?: number;        // time between slides
-  fadeMs?: number;            // crossfade duration
+  items?: Item[];
+  intervalMs?: number;
+  fadeMs?: number;
   className?: string;
 };
 
@@ -23,6 +23,8 @@ export default function HeroCarousel({
   const [paused, setPaused] = useState(false);
   const intervalRef = useRef<number | null>(null);
 
+  const safeIndex = index >= items.length ? 0 : index;
+
   const prefersReducedMotion = useMemo(() => {
     try {
       return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -34,7 +36,7 @@ export default function HeroCarousel({
   useEffect(() => {
     if (prefersReducedMotion) return;
 
-    if (!paused) {
+    if (!paused && items.length > 0) {
       intervalRef.current = window.setInterval(() => {
         setIndex((i) => (i + 1) % items.length);
       }, Math.max(500, intervalMs));
@@ -69,7 +71,7 @@ export default function HeroCarousel({
     >
       <div className="relative w-full h-[55vh] md:h-[70vh]">
         {items.map((it, i) => {
-          const active = i === index;
+          const active = i === safeIndex;
           return (
             <div
               key={i}
@@ -87,23 +89,13 @@ export default function HeroCarousel({
           );
         })}
 
-        <div className="absolute inset-0 bg-black/45 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
 
-        <div className="absolute inset-0 z-30 flex items-center justify-center px-4">
-          <div className="text-center text-white max-w-3xl">
-            <h2 className="text-3xl md:text-5xl font-bold drop-shadow">
-              {items[index].title ?? ""}
-            </h2>
-            {items[index].subtitle && (
-              <p className="mt-3 text-sm md:text-lg opacity-90">{items[index].subtitle}</p>
-            )}
-          </div>
-        </div>
       </div>
 
       <div className="absolute left-2 top-1/2 transform -translate-y-1/2 z-40">
         <button
-          className="btn btn-ghost btn-circle btn-sm"
+          className="btn btn-ghost btn-circle btn-sm text-white"
           onClick={() => {
             prev();
             setPaused(true);
@@ -117,7 +109,7 @@ export default function HeroCarousel({
 
       <div className="absolute right-2 top-1/2 transform -translate-y-1/2 z-40">
         <button
-          className="btn btn-ghost btn-circle btn-sm"
+          className="btn btn-ghost btn-circle btn-sm text-white"
           onClick={() => {
             next();
             setPaused(true);
@@ -134,15 +126,11 @@ export default function HeroCarousel({
           <button
             key={i}
             onClick={() => { go(i); setPaused(true); setTimeout(() => setPaused(false), 2000); }}
-            className={`w-3 h-3 rounded-full ${i === index ? "bg-white" : "bg-white/40"}`}
+            className={`w-3 h-3 rounded-full ${i === safeIndex ? "bg-white" : "bg-white/40"}`}
             aria-label={`Go to slide ${i + 1}`}
-            aria-current={i === index ? "true" : "false"}
+            aria-current={i === safeIndex ? "true" : "false"}
           />
         ))}
-      </div>
-
-      <div className="sr-only" aria-live="polite">
-        {items[index].title ? `${items[index].title} - slide ${index + 1} of ${items.length}` : `Slide ${index + 1} of ${items.length}`}
       </div>
     </section>
   );

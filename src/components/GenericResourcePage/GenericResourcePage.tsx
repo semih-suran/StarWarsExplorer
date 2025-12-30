@@ -39,6 +39,7 @@ type Props<T, F> = {
     onClose: () => void;
   }>;
   pagination?: PaginationOverride;
+  children?: React.ReactNode;
 };
 
 export const GenericResourcePage = <T, F extends Record<string, any>>({
@@ -55,11 +56,11 @@ export const GenericResourcePage = <T, F extends Record<string, any>>({
   List,
   Modal,
   pagination,
+  children,
 }: Props<T, F>) => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const isServerSide = !!pagination;
-
   const filteredList = useFilteredList(data || [], filters, predicate);
 
   const {
@@ -71,11 +72,8 @@ export const GenericResourcePage = <T, F extends Record<string, any>>({
   } = usePagination(filteredList || []);
 
   const displayList = isServerSide ? data : (internalPaginated as T[]);
-
   const displayPage = isServerSide ? pagination.page : internalPage;
-  const displayTotalPages = isServerSide
-    ? pagination.totalPages
-    : internalTotalPages;
+  const displayTotalPages = isServerSide ? pagination.totalPages : internalTotalPages;
   const handleNext = isServerSide ? pagination.nextPage : internalNext;
   const handlePrev = isServerSide ? pagination.prevPage : internalPrev;
 
@@ -92,11 +90,14 @@ export const GenericResourcePage = <T, F extends Record<string, any>>({
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-primary">{title}</h1>
+      <h1 className="text-3xl font-bold mb-6 text-yellow-400">{title}</h1>
+
+      {children && <div className="mb-8">{children}</div>}
 
       <div className="bg-base-200 p-4 rounded-lg shadow-md mb-6">
         <FilterForm
           onSubmit={(data) => {
+            console.log("GenericResourcePage calling setFilters with:", data);
             setFilters(data);
           }}
           onReset={resetFilters}

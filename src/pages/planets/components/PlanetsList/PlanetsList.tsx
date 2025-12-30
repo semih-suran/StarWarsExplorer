@@ -1,35 +1,28 @@
-import { Card } from '@/components/Card/Card';
-import type { IPlanet } from '@/types';
+import { Card } from "@/components/Card/Card";
+import type { IPlanet } from "@/types";
+import { getIdFromUrl } from "@/utilities/get-id-from-url";
 
 type Props = {
-  data?: IPlanet[];
-  onView?: (id: string) => void;
+  data: IPlanet[];
+  onView: (id: string) => void;
 };
 
 export const PlanetsList = ({ data, onView }: Props) => {
-  if (!data || data.length === 0)
-    return <div className="col-span-full p-6 text-center text-sm text-muted">No results</div>;
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {data.map((planet) => {
-        const id = planet.url.replace(/\/+$/, '').split('/').pop()!;
+        const id = getIdFromUrl(planet.url);
         return (
-          <Card key={planet.url} title={planet.name} testId="planet-card">
-            <p>Climate: {planet.climate}</p>
+          <Card
+            key={id}
+            id={id}
+            title={planet.name}
+            onView={onView}
+            type="planets"
+            image={`https://placehold.co/400x400/000000/FFFFFF?text=${planet.name}`}
+          >
             <p>Terrain: {planet.terrain}</p>
             <p>Population: {planet.population}</p>
-
-            <div className="mt-2">
-              <button
-                type="button"
-                className="btn btn-xs btn-primary"
-                onClick={() => onView?.(id)}
-                aria-label={`View details for ${planet.name}`}
-              >
-                View
-              </button>
-            </div>
           </Card>
         );
       })}
