@@ -14,11 +14,9 @@ const People = load(() => import("./pages/people/People"), "People");
 const Planets = load(() => import("./pages/planets/Planets"), "Planets");
 const Films = load(() => import("./pages/films/Films"), "Films");
 const Species = load(() => import("./pages/species/Species"), "Species");
-const Starships = load(
-  () => import("./pages/starships/Starships"),
-  "Starships"
-);
+const Starships = load(() => import("./pages/starships/Starships"), "Starships");
 const Vehicles = load(() => import("./pages/vehicles/Vehicles"), "Vehicles");
+const Favorites = load(() => import("./pages/favorites/Favorites"), "Favorites");
 
 export const prefetchRoute = (path: string) => {
   const map: Record<string, () => Promise<any>> = {
@@ -28,6 +26,7 @@ export const prefetchRoute = (path: string) => {
     "/species": () => import("./pages/species/Species"),
     "/starships": () => import("./pages/starships/Starships"),
     "/vehicles": () => import("./pages/vehicles/Vehicles"),
+    "/favorites": () => import("./pages/favorites/Favorites"),
   };
 
   if (map[path]) {
@@ -52,6 +51,7 @@ export const AppRoutes = () => {
         <Route path="/species" element={<Species />} />
         <Route path="/starships" element={<Starships />} />
         <Route path="/vehicles" element={<Vehicles />} />
+        <Route path="/favorites" element={<Favorites />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

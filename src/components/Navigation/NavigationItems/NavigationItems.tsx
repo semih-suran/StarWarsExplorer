@@ -1,34 +1,27 @@
-import { cn } from "@/utilities/cn";
 import { NavLink } from "react-router-dom";
-import { prefetchRoute } from "../../../Routes";
 
-type Props = {
-  mobile: boolean;
-  data: NavigationItem[];
-};
+const NAV_LINKS = [
+  { name: "Films", to: "/films" },
+  { name: "People", to: "/people" },
+  { name: "Planets", to: "/planets" },
+  { name: "Species", to: "/species" },
+  { name: "Starships", to: "/starships" },
+  { name: "Vehicles", to: "/vehicles" },
+];
 
-type NavigationItem = {
-  label: string;
-  url: string;
-};
-
-export const NavigationItems = ({ mobile, data }: Props) => {
+export const NavigationItems = () => {
   return (
-    <ul
-      className={cn(
-        "menu",
-        mobile &&
-          "menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow",
-        !mobile && "menu-horizontal px-1"
-      )}
-    >
-      {data.map((item) => (
-        <li key={item.url}>
-          <NavLink to={item.url} onMouseEnter={() => prefetchRoute(item.url)}>
-            {item.label}
+    <>
+      {NAV_LINKS.map((link) => (
+        <li key={link.name}>
+          <NavLink
+            to={link.to}
+            className={({ isActive }) => (isActive ? "active font-bold" : "")}
+          >
+            {link.name}
           </NavLink>
         </li>
       ))}
-    </ul>
+    </>
   );
 };

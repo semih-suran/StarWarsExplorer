@@ -28,15 +28,14 @@ export const PeopleFilterForm = ({ onSubmit, onReset, defaultValues }: any) => {
           placeholder="Search..."
         />
       </div>
-      <div className="flex-1">
+<div className="flex-1">
         <label className="label font-bold">Gender</label>
-        <select
-          {...register("gender")}
-          className="select select-bordered w-full"
-        >
+        <select {...register("gender")} className="select select-bordered w-full">
           <option value="">Any</option>
           <option value="male">Male</option>
           <option value="female">Female</option>
+          <option value="n/a">N/A</option>
+          <option value="hermaphrodite">Hermaphrodite</option>
         </select>
       </div>
       <button type="submit" className="btn btn-primary">
