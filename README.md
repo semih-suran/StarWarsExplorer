@@ -53,24 +53,24 @@ I have organized the codebase using a Feature-First (Co-location) architecture. 
 
 src/
 ├── api/
-│   └── api.ts          # Centralized API adapter (Swapi.info integration)
-├── components/         # Shared UI components (Atomic design)
+│   └── api.ts                # Centralized API adapter (Swapi.info integration)
+├── components/               # Shared UI components (Atomic design)
 │   ├── Alert/
 │   ├── Card/
 │   ├── Navigation/
-│   └── GenericResourcePage/ # The "Master" component for all list views
-├── hooks/              # Reusable Logic
-│   ├── useGetResource.ts    # ONE generic hook to fetch any entity
+│   └── GenericResourcePage/  # The "Master" component for all list views
+├── hooks/                    # Reusable Logic
+│   ├── useGetResource.ts     # ONE generic hook to fetch any entity
 │   ├── usePagination.ts
 │   └── useFilteredList.ts
-├── pages/              # Domain Views
+├── pages/                    # Domain Views
 │   ├── films/
 │   ├── people/
 │   ├── planets/
 │   └── ...
-├── store/              # Global state (Zustand)
-├── types/              # TypeScript interfaces
-└── utilities/          # Helper functions
+├── store/                    # Global state (Zustand)
+├── types/                    # TypeScript interfaces
+└── utilities/                # Helper functions
 
 ```
 
@@ -94,23 +94,23 @@ Implementation: I built a custom Adapter Layer in `api.ts` that:
 
 Trade-off: Initial load might be slightly heavier (loading 80 people at once), but subsequent interactions (sorting, filtering, paging) are instant (0ms latency) because the data is in memory.
 
-
-
 ### 2. State Management (Zustand)
 
 Decision: I chose Zustand over Redux or Context API.
 
 Why: Redux requires too much boilerplate for this scope. Context API often leads to unnecessary re-renders. Zustand provides a lightweight, atomic state model.
 
-- Persistence: I implemented `persist` middleware so that users don't lose their active filters if they refresh the page or navigate away.
+- Persistence: I implemented `persist` middleware so that users don't lose their favorites if they refresh the page or navigate away.
 
 ### 3. Testing Strategy
 
-Decision: Co-located Integration Tests.
+**Decision:** Multi-layered testing with a Custom Provider Wrapper.
 
-- Unit Tests: For complex utilities (e.g., filter-utils.ts).
-
-- Integration Tests: I mocked the API layer (msw or vitest) to test the full flow: User lands on page -> Data Loads -> User Filters -> List Updates.
+- **Unit Tests:** Focused on pure logic, such as `filter-utils.ts`, and complex hooks like `usePagination.ts` to prevent "off-by-one" errors during state transitions.
+- **Store Testing:** Dedicated testing for the Zustand Favorites store to ensure data persistence, duplicate prevention, and to verify the "ID Collision" fix across different resource types.
+- **Integration Tests:** I implemented a custom `render` utility that wraps components in `QueryClientProvider` and `MemoryRouter`. This allows for "real-world" testing of the data-to-UI flow:
+  - _Flow:_ Component Mount -> Hook Fetches Data (Mocked) -> UI Renders -> User Filters -> Hook Recalculates -> UI Updates.
+- **Tooling:** Utilized **Vitest** for speed and **React Testing Library** for accessible, user-centric testing patterns.
 
 ### 4. CSS Architecture
 
