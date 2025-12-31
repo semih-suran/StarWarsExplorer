@@ -90,16 +90,15 @@ export const GenericResourcePage = <T, F extends Record<string, any>>({
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-yellow-400">{title}</h1>
+      <h1 className="text-5xl font-bold text-yellow-400 mb-8 drop-shadow-md text-center">
+        {title}
+      </h1>
 
       {children && <div className="mb-8">{children}</div>}
 
       <div className="bg-base-200 p-4 rounded-lg shadow-md mb-6">
         <FilterForm
-          onSubmit={(data) => {
-            console.log("GenericResourcePage calling setFilters with:", data);
-            setFilters(data);
-          }}
+          onSubmit={(data) => setFilters(data)}
           onReset={resetFilters}
           defaultValues={filters}
           resourceList={allData || data}

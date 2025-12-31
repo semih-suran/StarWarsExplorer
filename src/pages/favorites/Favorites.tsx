@@ -25,7 +25,9 @@ export const Favorites = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-yellow-400">My Favorites</h1>
+      <h1 className="text-5xl font-bold text-yellow-400 mb-8 drop-shadow-md text-center">
+        My Favorites
+      </h1>
 
       {favorites.length === 0 ? (
         <Alert message="You haven't added any favorites yet. Go explore the galaxy!" type="info" />
