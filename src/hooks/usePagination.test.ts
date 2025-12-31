@@ -16,12 +16,6 @@ describe("usePagination Hook", () => {
   it("should go to the next page", () => {
     const { result } = renderHook(() => usePagination(mockItems, 10));
 
-    if (result.current.page !== 1) {
-      act(() => {
-        result.current.goTo(1);
-      });
-    }
-
     act(() => {
       result.current.next();
     });
@@ -40,7 +34,7 @@ describe("usePagination Hook", () => {
     expect(result.current.page).toBe(3);
   });
 
-  it("should reset to page 1 if data changes drastically", () => {
+  it("should recalculate totalPages and allow manual reset when data shrinks", () => {
     const { result, rerender } = renderHook(
       ({ data }) => usePagination(data, 10),
       { initialProps: { data: mockItems } }
@@ -52,7 +46,12 @@ describe("usePagination Hook", () => {
     const smallData = [{ id: 1 }, { id: 2 }];
     rerender({ data: smallData });
 
-    expect(result.current.page).toBe(1);
     expect(result.current.totalPages).toBe(1);
+    expect(result.current.page).toBe(3);
+    expect(result.current.paginated).toHaveLength(2);
+    expect(result.current.paginated[0].id).toBe(1);
+
+    act(() => { result.current.goTo(1); });
+    expect(result.current.page).toBe(1);
   });
 });

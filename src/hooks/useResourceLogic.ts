@@ -10,6 +10,7 @@ interface UseResourceLogicParams<T, F> {
   initialFilters: F;
   searchParamName: keyof F;
   predicate: (item: T, filters: F) => boolean;
+  pageSize?: number;
 }
 
 export function useResourceLogic<T, F extends Record<string, string>>({
@@ -18,14 +19,14 @@ export function useResourceLogic<T, F extends Record<string, string>>({
   initialFilters,
   searchParamName,
   predicate,
+  pageSize = 10,
 }: UseResourceLogicParams<T, F>) {
   const [searchParams, setSearchParams] = useSearchParams();
-
   const { filters } = useUrlFilters(initialFilters);
 
-  const page = Number(searchParams.get("page") || "1");
+  const pageParam = searchParams.get("page");
+  const page = pageParam ? Math.max(1, parseInt(pageParam, 10) || 1) : 1;
   const searchTerm = filters[searchParamName] || "";
-
   const { data, isLoading, error } = useGetResource(
     resourceName,
     fetcher,
@@ -33,35 +34,32 @@ export function useResourceLogic<T, F extends Record<string, string>>({
     searchTerm
   );
 
-  const rawResults = useMemo(() => data?.results || [], [data]);
-  const itemsPerPage = 10;
+  const allData = useMemo(() => data?.results || [], [data]);
 
   const filteredResults = useMemo(() => {
-    return rawResults.filter((item) => predicate(item, filters));
-  }, [rawResults, filters, predicate]);
+    return allData.filter((item) => predicate(item, filters));
+  }, [allData, filters, predicate]);
 
   const totalCount = filteredResults.length;
-  const totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
+  const totalPages = Math.ceil(totalCount / pageSize) || 1;
 
   const paginatedData = useMemo(() => {
-    const start = (page - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    return filteredResults.slice(start, end);
-  }, [filteredResults, page]);
-
+    const start = (page - 1) * pageSize;
+    return filteredResults.slice(start, start + pageSize);
+  }, [filteredResults, page, pageSize]);
+  
   const setFilters = useCallback(
     (newFilters: Partial<F>) => {
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
-
-          Object.entries(newFilters).forEach(([key, value]) => {
-            if (!value) next.delete(key);
-            else next.set(key, value as string);
+          
+          Object.entries(newFilters).forEach(([key, val]) => {
+            if (val) next.set(key, val as string);
+            else next.delete(key);
           });
 
           next.set("page", "1");
-
           return next;
         },
         { replace: true }
@@ -70,24 +68,28 @@ export function useResourceLogic<T, F extends Record<string, string>>({
     [setSearchParams]
   );
 
-  const goToPage = useCallback(
-    (newPage: number) => {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set("page", String(newPage));
-        return next;
-      });
-    },
-    [setSearchParams]
-  );
-
   const resetFilters = useCallback(() => {
     setSearchParams(new URLSearchParams(), { replace: true });
   }, [setSearchParams]);
 
+  const goToPage = useCallback(
+    (p: number) => {
+      const target = Math.max(1, Math.min(p, totalPages));
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("page", String(target));
+          return next;
+        },
+        { replace: false }
+      );
+    },
+    [setSearchParams, totalPages]
+  );
+
   return {
     data: paginatedData,
-    allData: rawResults,
+    allData,
     isLoading,
     error,
     filters,
@@ -97,16 +99,8 @@ export function useResourceLogic<T, F extends Record<string, string>>({
       page,
       totalPages,
       goToPage,
-      nextPage: () => {
-        if (page < totalPages) {
-          goToPage(page + 1);
-        }
-      },
-      prevPage: () => {
-        if (page > 1) {
-          goToPage(page - 1);
-        }
-      },
+      nextPage: () => goToPage(page + 1),
+      prevPage: () => goToPage(page - 1),
     },
   };
 }
