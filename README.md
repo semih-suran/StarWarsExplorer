@@ -1,6 +1,6 @@
 # 🌌 StarWars Explorer
 
-A responsive, interactive React application that allows users to explore the Star Wars universe via the [[SWAPI](https://swapi.info/)]. This project was built as a technical demonstration of modern React architecture, utilizing React 19, TypeScript, and TanStack Query for robust data management.
+A production-grade, interactive React application that allows users to explore the Star Wars universe via the [[SWAPI](https://swapi.info/)]. This project demonstrates modern React architecture, featuring a custom CI/CD pipeline, strict TypeScript enforcement, and a resilient "Generic Resource" design pattern.
 
 **Live Demo:** [[Netlify](https://starwarsexplorer-semih.netlify.app/)]
 
@@ -22,6 +22,12 @@ npm run dev
 
 ```
 npm run test
+```
+
+**Run Linting & Type Checking:**
+
+```
+npm run lint
 ```
 
 **Build for production:**
@@ -47,95 +53,96 @@ npm run build
 
 ## 📂 Folder Structure
 
-I have organized the codebase using a Feature-First (Co-location) architecture. Instead of grouping files by type (controllers, views), I group them by domain. This ensures the project remains scalable as new features are added.
+I have organized the codebase using a Feature-First (Co-location) architecture. Note the separation of Business Logic (helpers) from UI Components to ensure testability and prevent circular dependencies.
 
 ```
 
 src/
+├── .github/workflows/       # CI/CD Pipeline Configuration
 ├── api/
-│   └── api.ts                # Centralized API adapter (Swapi.info integration)
-├── components/               # Shared UI components (Atomic design)
-│   ├── Alert/
-│   ├── Card/
-│   ├── Navigation/
-│   └── GenericResourcePage/  # The "Master" component for all list views
-├── hooks/                    # Reusable Logic
-│   ├── useGetResource.ts     # ONE generic hook to fetch any entity
-│   ├── usePagination.ts
-│   └── useFilteredList.ts
-├── pages/                    # Domain Views
-│   ├── films/
-│   ├── people/
-│   ├── planets/
-│   └── ...
-├── store/                    # Global state (Zustand)
-├── types/                    # TypeScript interfaces
-└── utilities/                # Helper functions
+│ └── api.ts                 # Centralized Adapter (Type-safe API integration)
+├── components/              # Shared UI components (Atomic design)
+│ ├── GenericResourcePage/   # The "Master" component for all list views
+│ └── ...
+├── hooks/                   # Reusable Logic (Render-phase optimized)
+│ ├── usePagination.ts       # Self-correcting pagination logic
+│ └── ...
+├── pages/                   # Domain Views
+│ ├── planets/
+│ │ ├── Planets.tsx          # View Layer
+│ │ ├── Planets.helpers.ts   # Pure Logic Layer (Predicates/Types)
+│ │ ├── Planets.unit.test.ts # Logic Tests
+│ └── ...
+├── store/                   # Global state (Zustand)
+├── types/                   # Shared TypeScript interfaces
+└── utilities/               # Global Helper functions
 
 ```
 
 ## 🧠 Architectural Decisions & Trade-offs
 
-During the development of this application, several deliberate trade-offs were made to balance User Experience (UX) with the constraints of the provided API.
-
 ### 1. The "Adapter" Pattern (API Abstraction)
 
-Decision: The application uses `swapi.info` (a static JSON mirror of SWAPI) instead of the original `swapi.dev`.
+**Decision:** The application uses `swapi.info` (a static JSON mirror) instead of the original `swapi.dev`.
 
-Why: The original API is often slow or down. `swapi.info` provides extreme speed but returns flat arrays (no pagination).
+**Why:** The original API suffers from latency and downtime.
 
-Implementation: I built a custom Adapter Layer in `api.ts` that:
+**Implementation:** A custom Adapter Layer in `api.ts` fetches the full dataset once and wraps it in a standard structure. This enables **Instant Filtering** (0ms latency) and Client-Side pagination, prioritizing User Experience over initial bandwidth.
 
-1. Fetches the full dataset once.
+### 2. Automated Quality Control (CI/CD)
 
-2. Wraps it in a standard structure (`{ count, results: [] }`).
+**Decision:** Implemented a GitHub Actions pipeline (`ci.yml`).
 
-3. Passes it to the UI, which handles Client-Side Pagination and Instant Filtering.
+**Why:** To enforce code quality automatically. Every push triggers a workflow that:
 
-Trade-off: Initial load might be slightly heavier (loading 80 people at once), but subsequent interactions (sorting, filtering, paging) are instant (0ms latency) because the data is in memory.
+1. Installs dependencies (Clean Install).
 
-### 2. State Management (Zustand)
+2. Runs ESLint (Static Analysis).
 
-Decision: I chose Zustand over Redux or Context API.
+3. Checks TypeScript types (noEmit).
 
-Why: Redux requires too much boilerplate for this scope. Context API often leads to unnecessary re-renders. Zustand provides a lightweight, atomic state model.
+4. Runs the Test Suite.
 
-- Persistence: I implemented `persist` middleware so that users don't lose their favorites if they refresh the page or navigate away.
+5. Verifies the Production Build.
 
-### 3. Testing Strategy
+**Impact:** Prevents "it works on my machine" bugs and ensures the `main` branch is always deployable.
+
+### 3. Strict Type Safety
+
+**Decision:** Zero tolerance for `any`.
+
+**Why:** While `any` is convenient, it defeats the purpose of TypeScript. I utilized Generics (e.g., `<T>`) and Type Guards to ensure that data flowing through the Generic Resource Engine is type-safe without being tightly coupled to a specific entity like `IPeople`.
+
+### 4. Testing Strategy
 
 **Decision:** Multi-layered testing with a Custom Provider Wrapper.
 
-- **Unit Tests:** Focused on pure logic, such as `filter-utils.ts`, and complex hooks like `usePagination.ts` to prevent "off-by-one" errors during state transitions.
-- **Store Testing:** Dedicated testing for the Zustand Favorites store to ensure data persistence, duplicate prevention, and to verify the "ID Collision" fix across different resource types.
-- **Integration Tests:** I implemented a custom `render` utility that wraps components in `QueryClientProvider` and `MemoryRouter`. This allows for "real-world" testing of the data-to-UI flow:
-  - _Flow:_ Component Mount -> Hook Fetches Data (Mocked) -> UI Renders -> User Filters -> Hook Recalculates -> UI Updates.
-- **Tooling:** Utilized **Vitest** for speed and **React Testing Library** for accessible, user-centric testing patterns.
+- **Unit Tests:** Focused on pure logic. Logic was extracted to `*.helpers.ts` files to isolate it from React rendering concerns, making tests faster and more reliable.
 
-### 4. CSS Architecture
+- **Hook Testing:** Verified Hook Lifecycles (e.g., `usePagination`) to ensure state self-corrects during render phases.
 
-Decision: Tailwind CSS combined with DaisyUI.
+- **Integration Tests:** Used a custom `render` utility to wrap components in `QueryClientProvider` and `MemoryRouter`, testing the full data-to-UI flow.
 
-Why: Tailwind allows for rapid styling directly in markup, reducing context switching between CSS and JS files. DaisyUI provides semantic component classes (like btn, card, navbar) which speeds up development while maintaining a consistent design system.
+### 5. Render-Phase State Management
 
-Responsiveness: All layouts are mobile-first, utilizing a burger menu for mobile navigation and grid layouts that adapt from single columns to multi-columns on larger screens.
+**Decision:** Moved state corrections (like resetting pagination when filtering) from `useEffect` to the **Render Phase**.
 
-### 5. Performance Optimizations
-
-Decision: Implemented route-based code splitting using `React.lazy` and `Suspense`.
-
-Why: To improve initial load time (FCP) by ensuring users only download the JavaScript for the page they are currently viewing.
-
-Optimization: Added "Hover Preloading" on navigation links. The application begins downloading the chunk for the next route the moment the user hovers over a link, ensuring the page is ready by the time they click (reducing Time to Interactive).
+**Why:** Using `useEffect` to correct state causes a "Double Render" (Paint -> Effect -> Paint). By checking boundaries during the render pass, React can cancel the invalid render and commit the correct one immediately, improving performance and preventing UI flicker.
 
 ### 6. Generic Resource Engine
 
-Decision: Instead of duplicating logic for People, Planets, and Starships, I implemented a Generic Resource Pattern.
+**Decision:** A single HOC-style architecture for all 6 resource types.
 
-How:
+**How:**
 
-- `useGetResource.ts`: A single hook that handles caching and data fetching for any entity type.
+- `useGetResource.ts`: Handles caching/fetching.
 
-- `GenericResourcePage.tsx`: A generic HOC-style component that handles the layout, error states, loading states, and pagination for all pages.
+- `GenericResourcePage.tsx`: Handles layout, error states, and pagination.
 
-- Benefit: Adding a new entity (e.g., "Species") takes minutes, not hours.
+**Benefit:** Adding a new entity takes minutes. The UI is consistent, and bug fixes in the engine propagate to all pages instantly.
+
+### 7. Performance Optimizations
+
+**Decision:** Route-based code splitting with Hover Preloading.
+
+**Optimization:** The application uses `React.lazy` to split bundles. To prevent "Loading..." waterfalls, I implemented a prefetching strategy where the next route's chunk begins downloading the moment a user hovers over a navigation card.

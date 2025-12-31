@@ -7,12 +7,8 @@ export const usePagination = <T>(data: T[], pageSize = 10) => {
     return Math.max(1, Math.ceil(data.length / pageSize));
   }, [data.length, pageSize]);
 
-  if (page > totalPages) {
-    setPage(1);
-  }
-
   const paginated = useMemo(() => {
-    const safePage = page > totalPages ? 1 : page;
+    const safePage = Math.min(page, totalPages);
     const start = (safePage - 1) * pageSize;
     return data.slice(start, start + pageSize);
   }, [data, page, pageSize, totalPages]);
@@ -25,7 +21,7 @@ export const usePagination = <T>(data: T[], pageSize = 10) => {
   };
 
   return {
-    page: page > totalPages ? 1 : page,
+    page,
     pageSize,
     totalPages,
     paginated,

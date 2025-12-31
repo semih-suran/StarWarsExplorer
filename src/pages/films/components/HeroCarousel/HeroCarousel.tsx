@@ -15,8 +15,8 @@ type Props = {
 
 export default function HeroCarousel({
   items = [],
-  intervalMs = 5000,
-  fadeMs = 700,
+  intervalMs = 3000,
+  fadeMs = 500,
   className = "",
 }: Props) {
   const [index, setIndex] = useState(0);
