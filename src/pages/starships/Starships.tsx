@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { getStarships } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { StarshipsList } from "./components/StarshipsList/StarshipsList";
@@ -20,7 +19,7 @@ const starshipsPredicate = (starship: IStarship, filters: StarshipsFormData) => 
 const INITIAL_FILTERS: StarshipsFormData = { name: "", starship_class: "" };
 
 export const Starships = () => {
-  const predicate = useCallback(starshipsPredicate, []);
+  const predicate = starshipsPredicate;
 
   const { 
     data, 

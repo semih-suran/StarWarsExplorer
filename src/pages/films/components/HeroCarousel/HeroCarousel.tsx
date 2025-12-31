@@ -50,13 +50,10 @@ export default function HeroCarousel({
     };
   }, [paused, intervalMs, items.length, prefersReducedMotion]);
 
-  useEffect(() => {
-    setIndex(0);
-  }, [items.length]);
 
   if (!items || items.length === 0) return null;
 
-  const go = (i: number) => setIndex((_) => (i + items.length) % items.length);
+  const go = (i: number) => setIndex(i % items.length);
   const prev = () => setIndex((i) => (i - 1 + items.length) % items.length);
   const next = () => setIndex((i) => (i + 1) % items.length);
 
@@ -90,7 +87,6 @@ export default function HeroCarousel({
         })}
 
         <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-
       </div>
 
       <div className="absolute left-2 top-1/2 transform -translate-y-1/2 z-40">
@@ -125,8 +121,14 @@ export default function HeroCarousel({
         {items.map((_, i) => (
           <button
             key={i}
-            onClick={() => { go(i); setPaused(true); setTimeout(() => setPaused(false), 2000); }}
-            className={`w-3 h-3 rounded-full ${i === safeIndex ? "bg-white" : "bg-white/40"}`}
+            onClick={() => {
+              go(i);
+              setPaused(true);
+              setTimeout(() => setPaused(false), 2000);
+            }}
+            className={`w-3 h-3 rounded-full ${
+              i === safeIndex ? "bg-white" : "bg-white/40"
+            }`}
             aria-label={`Go to slide ${i + 1}`}
             aria-current={i === safeIndex ? "true" : "false"}
           />

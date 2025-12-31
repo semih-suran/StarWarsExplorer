@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { getSpecies } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { SpeciesList } from "./components/SpeciesList/SpeciesList";
@@ -20,7 +19,7 @@ const speciesPredicate = (specie: ISpecie, filters: SpeciesFormData) => {
 const INITIAL_FILTERS: SpeciesFormData = { name: "", classification: "" };
 
 export const Species = () => {
-  const predicate = useCallback(speciesPredicate, []);
+  const predicate = speciesPredicate;
 
   const { 
     data, 

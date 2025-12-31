@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { planetsPredicate } from "./Planets";
+import { planetsPredicate, type PlanetsFormData } from "./Planets.helpers";
 import type { IPlanet } from "@/types";
 
 const createPlanet = (name: string, terrain: string): IPlanet => ({
@@ -14,7 +14,7 @@ const createPlanet = (name: string, terrain: string): IPlanet => ({
   population: "100000",
   residents: [],
   films: [],
-  created: new Date(), 
+  created: new Date(),
   edited: new Date(),
   url: "",
 });
@@ -23,18 +23,18 @@ describe("planetsPredicate", () => {
   const forestPlanet = createPlanet("Endor", "forests, mountains");
 
   it("should match when name filter is empty", () => {
-    const filter: any = { name: "", terrain: "forests" }; 
+    const filter: PlanetsFormData = { name: "", terrain: "forests" };
 
     expect(planetsPredicate(forestPlanet, filter)).toBe(true);
   });
-  
+
   it("should match by name", () => {
-    const filter: any = { name: "Endor" };
+    const filter: PlanetsFormData = { name: "Endor", terrain: "" };
     expect(planetsPredicate(forestPlanet, filter)).toBe(true);
   });
 
   it("should not match by incorrect name", () => {
-    const filter: any = { name: "Tatooine" };
+    const filter: PlanetsFormData = { name: "Tatooine", terrain: "" };
     expect(planetsPredicate(forestPlanet, filter)).toBe(false);
   });
 });

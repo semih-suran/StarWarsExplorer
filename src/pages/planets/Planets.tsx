@@ -1,26 +1,16 @@
-import { useCallback } from "react";
 import { getPlanets } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { PlanetsList } from "./components/PlanetsList/PlanetsList";
-import {
-  PlanetsFilterForm,
-  type PlanetsFormData,
-} from "./components/PlanetsFilterForm/PlanetsFilterForm";
+import { PlanetsFilterForm } from "./components/PlanetsFilterForm/PlanetsFilterForm";
 import PlanetsModal from "./components/PlanetsModal/PlanetsModal";
-import { matchesSearch } from "@/utilities/filter-utils";
-import type { IPlanet } from "@/types";
 import { useResourceLogic } from "@/hooks/useResourceLogic";
 
-export const planetsPredicate = (planet: IPlanet, filters: PlanetsFormData) => {
-  const nameMatch = matchesSearch(planet.name, filters.name);
-  const terrainMatch = matchesSearch(planet.terrain, filters.terrain);
-  return nameMatch && terrainMatch;
-};
+import { planetsPredicate, type PlanetsFormData } from "./Planets.helpers";
 
 const INITIAL_FILTERS: PlanetsFormData = { name: "", terrain: "" };
 
 export const Planets = () => {
-  const predicate = useCallback(planetsPredicate, []);
+  const predicate = planetsPredicate;
 
   const { 
     data, 

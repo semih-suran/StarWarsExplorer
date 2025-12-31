@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { getVehicles } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { VehiclesList } from "./components/VehiclesList/VehiclesList";
@@ -20,7 +19,7 @@ const vehiclesPredicate = (vehicle: IVehicle, filters: VehiclesFormData) => {
 const INITIAL_FILTERS: VehiclesFormData = { name: "", vehicle_class: "" };
 
 export const Vehicles = () => {
-  const predicate = useCallback(vehiclesPredicate, []);
+  const predicate = vehiclesPredicate;
 
   const { 
     data, 

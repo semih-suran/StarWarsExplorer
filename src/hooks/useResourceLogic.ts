@@ -33,7 +33,7 @@ export function useResourceLogic<T, F extends Record<string, string>>({
     searchTerm
   );
 
-  const rawResults = data?.results || [];
+  const rawResults = useMemo(() => data?.results || [], [data]);
   const itemsPerPage = 10;
 
   const filteredResults = useMemo(() => {

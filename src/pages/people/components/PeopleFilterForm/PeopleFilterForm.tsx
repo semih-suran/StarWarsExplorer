@@ -3,7 +3,14 @@ import { useEffect } from "react";
 
 export type PeopleFormData = { name: string; gender: string };
 
-export const PeopleFilterForm = ({ onSubmit, onReset, defaultValues }: any) => {
+type Props = {
+  onSubmit: (data: PeopleFormData) => void;
+  onReset: () => void;
+  defaultValues?: PeopleFormData;
+  resourceList?: unknown[]; 
+};
+
+export const PeopleFilterForm = ({ onSubmit, onReset, defaultValues }: Props) => {
   const { register, getValues, reset } = useForm({
     defaultValues: defaultValues || { name: "", gender: "" },
   });
@@ -28,7 +35,7 @@ export const PeopleFilterForm = ({ onSubmit, onReset, defaultValues }: any) => {
           placeholder="Search..."
         />
       </div>
-<div className="flex-1">
+      <div className="flex-1">
         <label className="label font-bold">Gender</label>
         <select {...register("gender")} className="select select-bordered w-full">
           <option value="">Any</option>
