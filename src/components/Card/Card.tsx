@@ -33,7 +33,7 @@ export const Card = ({ id, title, image, children, onView, type }: CardProps) =>
         </figure>
       )}
       <div className="card-body items-center text-center">
-        <h2 className="card-title text-primary">{title}</h2>
+        <h2 className="card-title text-yellow-400">{title}</h2>
         <div className="text-sm opacity-70 mb-4">{children}</div>
         
         <div className="card-actions justify-end w-full gap-2 items-center">
@@ -65,7 +65,7 @@ export const Card = ({ id, title, image, children, onView, type }: CardProps) =>
             className="btn btn-primary btn-sm"
             onClick={() => onView && onView(id)}
           >
-            View
+            Detail
           </button>
         </div>
       </div>
