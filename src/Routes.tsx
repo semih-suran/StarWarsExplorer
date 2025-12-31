@@ -1,11 +1,15 @@
-import { lazy, Suspense } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { lazy, Suspense, type ComponentType } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Loading } from "./components/Loading/Loading";
 
-const load = (importFn: () => Promise<any>, name: string) => {
+const load = (
+  importFn: () => Promise<{ default: ComponentType<unknown> }>, 
+  name: string
+) => {
   return lazy(async () => {
     const module = await importFn();
-    return { default: module[name] };
+    return { default: module.default || module[name as keyof typeof module] };
   });
 };
 
@@ -19,7 +23,7 @@ const Vehicles = load(() => import("./pages/vehicles/Vehicles"), "Vehicles");
 const Favorites = load(() => import("./pages/favorites/Favorites"), "Favorites");
 
 export const prefetchRoute = (path: string) => {
-  const map: Record<string, () => Promise<any>> = {
+  const map: Record<string, () => Promise<unknown>> = {
     "/people": () => import("./pages/people/People"),
     "/planets": () => import("./pages/planets/Planets"),
     "/films": () => import("./pages/films/Films"),

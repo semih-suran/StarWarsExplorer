@@ -1,0 +1,50 @@
+name: CI Pipeline
+
+# Trigger the workflow on:
+# 1. Pushes to the main branch
+# 2. Any Pull Request (Catch bugs BEFORE merging)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Install Node.js (version I am developing with)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      # 3. Install Dependencies (ci- Clean install for consistency)
+      - name: Install Dependencies
+        run: npm ci
+
+      # 4. Linting (Static Analysis)
+      # Check for code style, unused variables, and potential errors
+      - name: Run Linting
+        run: npm run lint
+
+      # 5. Type Checking (TypeScript)
+      # Ensure no type errors exist in the project
+      - name: Run Type Check
+        run: npx tsc --noEmit
+
+      # 6. Run Tests
+      # Execute the Vitest suite to ensure all tests pass
+      - name: Run Tests
+        run: npm run test
+
+      # 7. Build Check
+      # Verify that the app actually builds for production
+      - name: Build Production Bundle
+        run: npm run build

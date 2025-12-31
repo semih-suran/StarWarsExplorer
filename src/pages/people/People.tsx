@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { getPeople } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { PeopleList } from "./components/PeopleList/PeopleList";
@@ -20,7 +19,7 @@ const peoplePredicate = (person: IPeople, filters: PeopleFormData) => {
 const INITIAL_FILTERS: PeopleFormData = { name: "", gender: "" };
 
 export const People = () => {
-  const predicate = useCallback(peoplePredicate, []);
+  const predicate = peoplePredicate;
 
   const { 
     data, 

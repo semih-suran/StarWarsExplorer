@@ -42,7 +42,7 @@ type Props<T, F> = {
   children?: React.ReactNode;
 };
 
-export const GenericResourcePage = <T, F extends Record<string, any>>({
+export const GenericResourcePage = <T, F extends Record<string, unknown>>({
   title,
   data,
   allData,
@@ -73,7 +73,9 @@ export const GenericResourcePage = <T, F extends Record<string, any>>({
 
   const displayList = isServerSide ? data : (internalPaginated as T[]);
   const displayPage = isServerSide ? pagination.page : internalPage;
-  const displayTotalPages = isServerSide ? pagination.totalPages : internalTotalPages;
+  const displayTotalPages = isServerSide
+    ? pagination.totalPages
+    : internalTotalPages;
   const handleNext = isServerSide ? pagination.nextPage : internalNext;
   const handlePrev = isServerSide ? pagination.prevPage : internalPrev;
 
@@ -105,7 +107,10 @@ export const GenericResourcePage = <T, F extends Record<string, any>>({
         />
       </div>
 
-      <ActiveFilters filters={filters} onReset={resetFilters} />
+      <ActiveFilters
+        filters={filters as Record<string, string | undefined | null>}
+        onReset={resetFilters}
+      />
 
       {displayList.length === 0 ? (
         <Alert message="No results found matching your criteria." type="info" />

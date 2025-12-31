@@ -20,6 +20,11 @@ export const api = axios.create({
   timeout: API_CONFIG.timeout,
 });
 
+type Searchable = {
+  name?: string;
+  title?: string;
+};
+
 const fetchResource = async <T>(
   url: string,
   _page: number,
@@ -31,9 +36,11 @@ const fetchResource = async <T>(
 
   if (search) {
     const lowerSearch = search.toLowerCase();
-    results = results.filter((item: any) =>
-      (item.name || item.title || "").toLowerCase().includes(lowerSearch)
-    );
+    results = results.filter((item) => {
+      const candidate = item as unknown as Searchable;
+      const name = candidate.name || candidate.title || "";
+      return name.toLowerCase().includes(lowerSearch);
+    });
   }
 
   return {

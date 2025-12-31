@@ -2,16 +2,16 @@ import { Link } from "react-router-dom";
 
 const CATEGORIES = [
   {
-    title: "People",
-    path: "/people",
-    img: "https://static.wikia.nocookie.net/starwars/images/1/14/Got_A_Bad_feeling.jpg",
-    description: "Browse characters from the Star Wars universe.",
-  },
-  {
     title: "Films",
     path: "/films",
     img: "https://m.media-amazon.com/images/I/81cY-e6u0OL._SL1500_.jpg",
     description: "Explore the saga's legendary movies.",
+  },
+  {
+    title: "People",
+    path: "/people",
+    img: "https://static.wikia.nocookie.net/starwars/images/1/14/Got_A_Bad_feeling.jpg",
+    description: "Browse characters from the Star Wars universe.",
   },
   {
     title: "Planets",

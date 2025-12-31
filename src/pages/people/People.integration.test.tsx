@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@/test/test-utils";
 import { People } from "./People";
 import * as apiModule from "@/api/api";
+import type { IPeople } from "@/types";
 
 const MOCK_PEOPLE = [
   { name: "Luke Skywalker", gender: "male", url: "https://swapi.info/api/people/1" },
@@ -15,7 +16,7 @@ describe("People Page - Integration", () => {
       count: 3,
       next: null,
       previous: null,
-      results: MOCK_PEOPLE as any,
+      results: MOCK_PEOPLE as unknown as IPeople[],
     });
 
     render(<People />);

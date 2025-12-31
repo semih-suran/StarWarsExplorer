@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { getFilms, API_CONFIG } from "@/api/api";
 import { GenericResourcePage } from "@/components";
 import { FilmsList } from "./components/FilmsList/FilmsList";
@@ -24,17 +24,16 @@ const filmsPredicate = (film: IFilm, filters: FilmsFormData) => {
 const INITIAL_FILTERS: FilmsFormData = { name: "", director: "" };
 
 export const Films = () => {
-  const predicate = useCallback(filmsPredicate, []);
-
-  const { 
-    data, 
+  const predicate = filmsPredicate;
+  const {
+    data,
     allData,
-    isLoading, 
-    error, 
-    filters, 
-    setFilters, 
+    isLoading,
+    error,
+    filters,
+    setFilters,
     resetFilters,
-    pagination 
+    pagination,
   } = useResourceLogic({
     resourceName: "films",
     fetcher: getFilms,
@@ -51,9 +50,9 @@ export const Films = () => {
 
   const carouselItems = useMemo(() => {
     const source = carouselData?.results || [];
-    
+
     const sorted = [...source].sort((a, b) => a.episode_id - b.episode_id);
-    
+
     return sorted.map((film) => ({
       img: POSTERS_BY_EPISODE[film.episode_id] ?? "",
       title: film.title,
@@ -77,9 +76,7 @@ export const Films = () => {
       Modal={FilmsModal}
       pagination={pagination}
     >
-      {carouselItems.length > 0 && (
-        <HeroCarousel items={carouselItems} />
-      )}
+      {carouselItems.length > 0 && <HeroCarousel items={carouselItems} />}
     </GenericResourcePage>
   );
 };
