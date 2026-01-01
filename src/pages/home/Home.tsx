@@ -73,7 +73,7 @@ export const Home = () => {
               <p className="opacity-70 text-sm mb-4">{cat.description}</p>
               
               <div className="card-actions">
-                <button className="btn btn-primary btn-sm btn-wide">
+                <button className="btn btn-warning btn-sm btn-wide">
                   Explore {cat.title}
                 </button>
               </div>
