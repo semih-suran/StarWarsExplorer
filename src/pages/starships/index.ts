@@ -2,4 +2,4 @@ export { StarshipsFilterForm } from "./components/StarshipsFilterForm/StarshipsF
 export type { StarshipsFormData } from "./components/StarshipsFilterForm/StarshipsFilterForm";
 
 export { StarshipsList } from "./components/StarshipsList/StarshipsList";
-export { default as StarshipsModal } from "./components/StarshipsModal/StarshipsModal";
+export { StarshipsModal } from "./components/StarshipsModal/StarshipsModal";

@@ -2,4 +2,4 @@ export { SpeciesFilterForm } from "./components/SpeciesFilterForm/SpeciesFilterF
 export type { SpeciesFormData } from "./components/SpeciesFilterForm/SpeciesFilterForm";
 
 export { SpeciesList } from "./components/SpeciesList/SpeciesList";
-export { default as SpeciesModal } from "./components/SpeciesModal/SpeciesModal";
+export { SpeciesModal } from "./components/SpeciesModal/SpeciesModal";

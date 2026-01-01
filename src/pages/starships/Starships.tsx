@@ -1,11 +1,11 @@
+import { useState } from "react";
 import { getStarships } from "@/api/api";
-import { GenericResourcePage } from "@/components";
+import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
+import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
+import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
 import { StarshipsList } from "./components/StarshipsList/StarshipsList";
-import {
-  StarshipsFilterForm,
-  type StarshipsFormData,
-} from "./components/StarshipsFilterForm/StarshipsFilterForm";
-import StarshipsModal from "./components/StarshipsModal/StarshipsModal";
+import { StarshipsFilterForm, type StarshipsFormData } from "./components/StarshipsFilterForm/StarshipsFilterForm";
+import { StarshipsModal } from "./components/StarshipsModal/StarshipsModal";
 import { matchesSearch } from "@/utilities/filter-utils";
 import type { IStarship } from "@/types";
 import { useResourceLogic } from "@/hooks/useResourceLogic";
@@ -19,7 +19,7 @@ const starshipsPredicate = (starship: IStarship, filters: StarshipsFormData) => 
 const INITIAL_FILTERS: StarshipsFormData = { name: "", starship_class: "" };
 
 export const Starships = () => {
-  const predicate = starshipsPredicate;
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { 
     data, 
@@ -35,25 +35,40 @@ export const Starships = () => {
     fetcher: getStarships,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
-    predicate,
+    predicate: starshipsPredicate,
   });
 
   return (
-    <GenericResourcePage
-      title="Starships"
-      data={data}
-      allData={allData}
-      isLoading={isLoading}
-      error={error}
-      filters={filters}
-      setFilters={setFilters}
-      resetFilters={resetFilters}
-      predicate={predicate}
-      FilterForm={StarshipsFilterForm}
-      List={StarshipsList}
-      Modal={StarshipsModal}
-      pagination={pagination}
-    />
+    <ResourceLayout title="Starships" isLoading={isLoading} error={error}>
+      <div className="bg-base-200 p-4 rounded-lg shadow-md mb-6">
+        <StarshipsFilterForm
+          onSubmit={setFilters}
+          onReset={resetFilters}
+          defaultValues={filters}
+          resourceList={allData}
+        />
+      </div>
+
+      <ActiveFilters filters={filters} onReset={resetFilters} />
+
+      {data.length === 0 ? (
+        <div className="alert alert-info">No starships found matching your criteria.</div>
+      ) : (
+        <>
+          <div className="mb-4 text-sm opacity-70">Showing {data.length} results</div>
+          <StarshipsList data={data} onView={setSelectedId} />
+          
+          <PaginationControls
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onNext={pagination.nextPage}
+            onPrev={pagination.prevPage}
+          />
+        </>
+      )}
+
+      <StarshipsModal id={selectedId} onClose={() => setSelectedId(null)} />
+    </ResourceLayout>
   );
 };
 

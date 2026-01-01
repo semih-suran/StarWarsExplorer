@@ -19,9 +19,9 @@ export const PeopleList = ({ data, onView }: Props) => {
           onView={onView}
           image={`https://placehold.co/400x400/000000/FFFFFF?text=${item.name}`}
         >
-          <div className="flex gap-2 mt-2">
-            <div className="badge badge-ghost">{item.gender}</div>
-            <div className="badge badge-outline">{item.birth_year}</div>
+          <div className="flex flex-wrap justify-center gap-2 mt-2 w-full">
+             <div className="badge badge-primary badge-outline">{item.gender}</div>
+            <div className="badge badge-secondary badge-outline">{item.birth_year}</div>
           </div>
         </Card>
       ))}

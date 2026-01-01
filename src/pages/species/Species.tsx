@@ -1,11 +1,11 @@
+import { useState } from "react";
 import { getSpecies } from "@/api/api";
-import { GenericResourcePage } from "@/components";
+import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
+import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
+import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
 import { SpeciesList } from "./components/SpeciesList/SpeciesList";
-import {
-  SpeciesFilterForm,
-  type SpeciesFormData,
-} from "./components/SpeciesFilterForm/SpeciesFilterForm";
-import SpeciesModal from "./components/SpeciesModal/SpeciesModal";
+import { SpeciesFilterForm, type SpeciesFormData } from "./components/SpeciesFilterForm/SpeciesFilterForm";
+import { SpeciesModal } from "./components/SpeciesModal/SpeciesModal";
 import { matchesSearch } from "@/utilities/filter-utils";
 import type { ISpecie } from "@/types";
 import { useResourceLogic } from "@/hooks/useResourceLogic";
@@ -19,7 +19,7 @@ const speciesPredicate = (specie: ISpecie, filters: SpeciesFormData) => {
 const INITIAL_FILTERS: SpeciesFormData = { name: "", classification: "" };
 
 export const Species = () => {
-  const predicate = speciesPredicate;
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { 
     data, 
@@ -35,25 +35,40 @@ export const Species = () => {
     fetcher: getSpecies,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
-    predicate,
+    predicate: speciesPredicate,
   });
 
   return (
-    <GenericResourcePage
-      title="Species"
-      data={data}
-      allData={allData}
-      isLoading={isLoading}
-      error={error}
-      filters={filters}
-      setFilters={setFilters}
-      resetFilters={resetFilters}
-      predicate={predicate}
-      FilterForm={SpeciesFilterForm}
-      List={SpeciesList}
-      Modal={SpeciesModal}
-      pagination={pagination}
-    />
+    <ResourceLayout title="Species" isLoading={isLoading} error={error}>
+      <div className="bg-base-200 p-4 rounded-lg shadow-md mb-6">
+        <SpeciesFilterForm
+          onSubmit={setFilters}
+          onReset={resetFilters}
+          defaultValues={filters}
+          resourceList={allData}
+        />
+      </div>
+
+      <ActiveFilters filters={filters} onReset={resetFilters} />
+
+      {data.length === 0 ? (
+        <div className="alert alert-info">No species found matching your criteria.</div>
+      ) : (
+        <>
+          <div className="mb-4 text-sm opacity-70">Showing {data.length} results</div>
+          <SpeciesList data={data} onView={setSelectedId} />
+          
+          <PaginationControls
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onNext={pagination.nextPage}
+            onPrev={pagination.prevPage}
+          />
+        </>
+      )}
+
+      <SpeciesModal id={selectedId} onClose={() => setSelectedId(null)} />
+    </ResourceLayout>
   );
 };
 

@@ -59,26 +59,26 @@ I have organized the codebase using a Feature-First (Co-location) architecture. 
 
 ```
 
-src/
-├── .github/workflows/       # CI/CD Pipeline Configuration
-├── api/
-│   └── api.ts               # Centralized Adapter (Zod-validated)
-├── components/              # Shared UI components
-│   ├── Layout/              # Reusable Application Shells
-│   │   └── ResourceLayout.tsx 
-│   └── ...
-├── hooks/                   # Reusable Logic
-│   ├── useFavoritesData.ts  # Live-fetching logic for Favorites (SSOT)
-│   ├── usePagination.ts     # Deterministic pagination logic
-│   └── ...
-├── pages/                   # Domain Views
-│   ├── planets/
-│   │   ├── Planets.tsx      # View Layer (Composes Layout + Filters + List)
-│   │   ├── Planets.helpers.ts
-│   │   └── ...
-├── store/                   # Global state (Zustand)
-├── types/                   # TypeScript Interfaces (Inferred from Zod)
-└── utilities/               # Global Helper functions
+src/ 
+├── .github/workflows/          # CI/CD Pipeline Configuration 
+├── api/ 
+│ └── api.ts                    # Centralized Adapter (Zod-validated) 
+├── components/                 # Shared UI components 
+│ ├── ResourceLayout/           # Reusable Application Shells 
+│ │ └── ResourceLayout.tsx 
+│ └── ... 
+├── hooks/                      # Reusable Logic 
+│ ├── useFavoritesData.ts       # Live-fetching logic for Favorites (SSOT) 
+│ ├── usePagination.ts          # Deterministic pagination logic 
+│ └── ... 
+├── pages/                      # Domain Views 
+│ ├── planets/ 
+│ │ ├── Planets.tsx             # View Layer (Composes Layout + Filters + List) 
+│ │ ├── Planets.helpers.ts 
+│ │ └── ... 
+├── store/                      # Global state (Zustand) 
+├── types/                      # TypeScript Interfaces (Inferred from Zod) 
+└── utilities/                  # Global Helper functions
 
 ```
 
@@ -103,7 +103,7 @@ src/
 
 **Why:** Storing full objects in `localStorage` leads to "Stale Data" bugs (e.g., a character's details update on the server, but the user sees the old version from storage) and storage limit issues.
 
-**Implementation:** To enforce code quality automatically. Every push triggers a workflow that:
+**Implementation:**
 
 - **Zustand:** Acts as a lightweight list of pointers (IDs).
 

@@ -2,4 +2,4 @@ export { PlanetsFilterForm } from "./components/PlanetsFilterForm/PlanetsFilterF
 export type { PlanetsFormData } from "./components/PlanetsFilterForm/PlanetsFilterForm";
 
 export { PlanetsList } from "./components/PlanetsList/PlanetsList";
-export { default as PlanetsModal } from "./components/PlanetsModal/PlanetsModal";
+export { PlanetsModal } from "./components/PlanetsModal/PlanetsModal";
