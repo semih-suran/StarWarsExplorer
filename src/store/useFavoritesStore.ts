@@ -1,47 +1,44 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 
-export type FavoriteItem = {
-  id: string;
-  name: string;
-  type: "people" | "films" | "planets" | "species" | "starships" | "vehicles";
-  image?: string;
-};
+interface FavoritesStore {
+  favoriteIds: string[];
+  addFavorite: (url: string) => void;
+  removeFavorite: (url: string) => void;
+  isFavorite: (url: string) => boolean;
+  toggleFavorite: (url: string) => void;
+}
 
-type FavoritesState = {
-  favorites: FavoriteItem[];
-  addFavorite: (item: FavoriteItem) => void;
-  removeFavorite: (id: string, type: FavoriteItem["type"]) => void;
-  isFavorite: (id: string, type: FavoriteItem["type"]) => boolean;
-};
-
-export const useFavoritesStore = create<FavoritesState>()(
+export const useFavoritesStore = create<FavoritesStore>()(
   persist(
     (set, get) => ({
-      favorites: [],
+      favoriteIds: [],
 
-      addFavorite: (item) => {
-        const current = get().favorites;
-        const exists = current.find((f) => f.id === item.id && f.type === item.type);
-        if (!exists) {
-          set({ favorites: [...current, item] });
+      addFavorite: (url) =>
+        set((state) => {
+          if (state.favoriteIds.includes(url)) return state;
+          return { favoriteIds: [...state.favoriteIds, url] };
+        }),
+
+      removeFavorite: (url) =>
+        set((state) => ({
+          favoriteIds: state.favoriteIds.filter((id) => id !== url),
+        })),
+
+      isFavorite: (url) => get().favoriteIds.includes(url),
+
+      toggleFavorite: (url) => {
+        const { favoriteIds } = get();
+        if (favoriteIds.includes(url)) {
+          get().removeFavorite(url);
+        } else {
+          get().addFavorite(url);
         }
-      },
-
-      removeFavorite: (id, type) => {
-        set({
-          favorites: get().favorites.filter(
-            (item) => !(item.id === id && item.type === type)
-          ),
-        });
-      },
-
-      isFavorite: (id, type) => {
-        return !!get().favorites.find((item) => item.id === id && item.type === type);
       },
     }),
     {
-      name: "sw-explorer-favorites",
+      name: "starwars-favorites-v3",
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );

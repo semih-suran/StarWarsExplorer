@@ -41,6 +41,8 @@ npm run build
 
 **Core:** React 19, TypeScript, Vite
 
+**Data Integrity:** Zod (Runtime Schema Validation)
+
 **State Management:** Zustand (with persistence middleware)
 
 **Data Fetching:** TanStack Query (React Query) v5
@@ -53,45 +55,66 @@ npm run build
 
 ## 📂 Folder Structure
 
-I have organized the codebase using a Feature-First (Co-location) architecture. Note the separation of Business Logic (helpers) from UI Components to ensure testability and prevent circular dependencies.
+I have organized the codebase using a Feature-First (Co-location) architecture. Note the move from rigid "Generic Pages" to a Compositional Layout pattern.
 
 ```
 
 src/
 ├── .github/workflows/       # CI/CD Pipeline Configuration
 ├── api/
-│ └── api.ts                 # Centralized Adapter (Type-safe API integration)
-├── components/              # Shared UI components (Atomic design)
-│ ├── GenericResourcePage/   # The "Master" component for all list views
-│ └── ...
-├── hooks/                   # Reusable Logic (Render-phase optimized)
-│ ├── usePagination.ts       # Self-correcting pagination logic
-│ └── ...
+│   └── api.ts               # Centralized Adapter (Zod-validated)
+├── components/              # Shared UI components
+│   ├── Layout/              # Reusable Application Shells
+│   │   └── ResourceLayout.tsx 
+│   └── ...
+├── hooks/                   # Reusable Logic
+│   ├── useFavoritesData.ts  # Live-fetching logic for Favorites (SSOT)
+│   ├── usePagination.ts     # Deterministic pagination logic
+│   └── ...
 ├── pages/                   # Domain Views
-│ ├── planets/
-│ │ ├── Planets.tsx          # View Layer
-│ │ ├── Planets.helpers.ts   # Pure Logic Layer (Predicates/Types)
-│ │ ├── Planets.unit.test.ts # Logic Tests
-│ └── ...
+│   ├── planets/
+│   │   ├── Planets.tsx      # View Layer (Composes Layout + Filters + List)
+│   │   ├── Planets.helpers.ts
+│   │   └── ...
 ├── store/                   # Global state (Zustand)
-├── types/                   # Shared TypeScript interfaces
+├── types/                   # TypeScript Interfaces (Inferred from Zod)
 └── utilities/               # Global Helper functions
 
 ```
 
 ## 🧠 Architectural Decisions & Trade-offs
 
-### 1. The "Adapter" Pattern (API Abstraction)
 
-**Decision:** The application uses `swapi.info` (a static JSON mirror) instead of the original `swapi.dev`.
+### 1. The "Adapter" Pattern with Runtime Validation
 
-**Why:** The original API suffers from latency and downtime.
+**Decision:** The application uses `swapi.info` wrapped in a Zod-validated Adapter Layer.
 
-**Implementation:** A custom Adapter Layer in `api.ts` fetches the full dataset once and wraps it in a standard structure. This enables **Instant Filtering** (0ms latency) and Client-Side pagination, prioritizing User Experience over initial bandwidth.
+**Why:** TypeScript interfaces disappear at runtime. If the API changes its data shape, a standard React app would crash silently.
 
-### 2. Automated Quality Control (CI/CD)
+**Implementation:** 
+- `schemas.ts`: Defines strict contracts for every entity.
+- `api.ts`: Validates incoming data, ensuring the app "Fails Fast" at the network layer.
+- **Impact:** The app "Fails Fast" at the network layer with clear error messages, ensuring no corrupt data ever reaches the components.
 
-**Decision:** Implemented a GitHub Actions pipeline (`ci.yml`).
+
+### 2. Single Source of Truth (SSOT)
+
+**Decision:** The Favorites Store (Zustand) saves **only** Resource URLs, not the full objects.
+
+**Why:** Storing full objects in `localStorage` leads to "Stale Data" bugs (e.g., a character's details update on the server, but the user sees the old version from storage) and storage limit issues.
+
+**Implementation:** To enforce code quality automatically. Every push triggers a workflow that:
+
+- **Zustand:** Acts as a lightweight list of pointers (IDs).
+
+- **React Query:** The `useFavoritesData` hook fetches fresh data using those IDs.
+
+- **Benefit:** Users always see the live version of their favorites.
+
+
+### 3. Automated Quality Control (CI/CD)
+
+**Decision:** Implemented a GitHub Actions pipeline (`ci.yml`).To enforce code quality automatically. 
 
 **Why:** To enforce code quality automatically. Every push triggers a workflow that:
 
@@ -105,43 +128,25 @@ src/
 
 5. Verifies the Production Build.
 
-**Impact:** Prevents "it works on my machine" bugs and ensures the `main` branch is always deployable.
 
-### 3. Strict Type Safety
+### 4. Explicit State Orchestration
 
-**Decision:** Zero tolerance for `any`.
+**Decision:** Decoupled Pagination state from Auto-Correction magic.
 
-**Why:** While `any` is convenient, it defeats the purpose of TypeScript. I utilized Generics (e.g., `<T>`) and Type Guards to ensure that data flowing through the Generic Resource Engine is type-safe without being tightly coupled to a specific entity like `IPeople`.
+**Why:** Relying on `useEffect` or render-phase updates to "fix" pagination (e.g., when filtering) often leads to race conditions and infinite loops.
 
-### 4. Testing Strategy
+**Implementation:** The `useResourceLogic` hook explicitly orchestrates state changes. When filters are updated, it imperatively resets the pagination to Page 1.
 
-**Decision:** Multi-layered testing with a Custom Provider Wrapper.
+### 5. Composition over Configuration
 
-- **Unit Tests:** Focused on pure logic. Logic was extracted to `*.helpers.ts` files to isolate it from React rendering concerns, making tests faster and more reliable.
+**Decision:** Replaced the rigid `GenericResourcePage` with a `ResourceLayout` pattern.
 
-- **Hook Testing:** Verified Hook Lifecycles (e.g., `usePagination`) to ensure state self-corrects during render phases.
+**Why:** The previous "One Component to Rule Them All" approach made it impossible to handle unique requirements (e.g., different caching strategies or banners) for specific resources without prop drilling.
 
-- **Integration Tests:** Used a custom `render` utility to wrap components in `QueryClientProvider` and `MemoryRouter`, testing the full data-to-UI flow.
+**Implementation:** Pages like `Planets.tsx` now explicitly compose their UI using `ResourceLayout`, injecting specific Filter and List components. This increases code volume slightly but drastically improves maintainability and flexibility.
 
-### 5. Render-Phase State Management
 
-**Decision:** Moved state corrections (like resetting pagination when filtering) from `useEffect` to the **Render Phase**.
-
-**Why:** Using `useEffect` to correct state causes a "Double Render" (Paint -> Effect -> Paint). By checking boundaries during the render pass, React can cancel the invalid render and commit the correct one immediately, improving performance and preventing UI flicker.
-
-### 6. Generic Resource Engine
-
-**Decision:** A single HOC-style architecture for all 6 resource types.
-
-**How:**
-
-- `useGetResource.ts`: Handles caching/fetching.
-
-- `GenericResourcePage.tsx`: Handles layout, error states, and pagination.
-
-**Benefit:** Adding a new entity takes minutes. The UI is consistent, and bug fixes in the engine propagate to all pages instantly.
-
-### 7. Performance Optimizations
+### 6. Performance Optimizations
 
 **Decision:** Route-based code splitting with Hover Preloading.
 

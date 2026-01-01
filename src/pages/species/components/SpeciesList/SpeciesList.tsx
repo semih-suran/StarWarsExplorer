@@ -1,6 +1,5 @@
 import { Card } from "@/components/Card/Card";
 import type { ISpecie } from "@/types";
-import { getIdFromUrl } from "@/utilities/get-id-from-url";
 
 type Props = {
   data: ISpecie[];
@@ -10,22 +9,22 @@ type Props = {
 export const SpeciesList = ({ data, onView }: Props) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {data.map((specie) => {
-        const id = getIdFromUrl(specie.url);
-        return (
-          <Card
-            key={id}
-            id={id}
-            title={specie.name}
-            onView={onView}
-            type="species"
-            image={`https://placehold.co/400x400/000000/FFFFFF?text=${specie.name}`}
-          >
-            <p>Classification: {specie.classification}</p>
-            <p>Designation: {specie.designation}</p>
-          </Card>
-        );
-      })}
+      {data.map((item) => (
+        <Card
+          key={item.url}
+          id={item.url.split("/").filter(Boolean).pop()!}
+          url={item.url}
+          title={item.name}
+          type="species"
+          onView={onView}
+          image={`https://placehold.co/400x400/000000/FFFFFF?text=${item.name}`}
+        >
+          <div className="flex gap-2 mt-2">
+            <div className="badge badge-primary badge-outline">{item.classification}</div>
+            <div className="badge badge-secondary badge-outline">{item.language}</div>
+          </div>
+        </Card>
+      ))}
     </div>
   );
 };

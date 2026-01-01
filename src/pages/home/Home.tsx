@@ -4,37 +4,37 @@ const CATEGORIES = [
   {
     title: "Films",
     path: "/films",
-    img: "https://m.media-amazon.com/images/I/81cY-e6u0OL._SL1500_.jpg",
+    img: "https://cdnb.artstation.com/p/assets/images/images/051/968/045/large/jeffbearholy-anakin-ipx.jpg",
     description: "Explore the saga's legendary movies.",
   },
   {
     title: "People",
     path: "/people",
-    img: "https://static.wikia.nocookie.net/starwars/images/1/14/Got_A_Bad_feeling.jpg",
+    img: "https://images.bauerhosting.com/empire/2016/02/50-Greatest-Star-Wars-Characters.jpg",
     description: "Browse characters from the Star Wars universe.",
   },
   {
     title: "Planets",
     path: "/planets",
-    img: "https://static.wikia.nocookie.net/starwars/images/4/4a/Alderaan.jpg",
+    img: "https://images.steamusercontent.com/ugc/2351510977210497310/15427147A5B49D7532EA30C3B4A39D704389178D/",
     description: "Discover the worlds of the galaxy.",
   },
   {
     title: "Species",
     path: "/species",
-    img: "https://static.wikia.nocookie.net/starwars/images/f/fc/WookieeWarriorsKashyyykDefenders-2025RepUnit.png",
+    img: "https://static0.cbrimages.com/wordpress/wp-content/uploads/2024/02/10-best-star-wars-alien-species.jpg",
     description: "Learn about the diverse alien species.",
   },
   {
     title: "Starships",
     path: "/starships",
-    img: "https://static.wikia.nocookie.net/starwars/images/0/00/Xwing-ROOCE.png",
+    img: "https://static.wikia.nocookie.net/starwars/images/6/6e/Starfighters-SWE.png/",
     description: "View the fastest ships in the galaxy.",
   },
   {
     title: "Vehicles",
     path: "/vehicles",
-    img: "https://static.wikia.nocookie.net/starwars/images/2/27/Rebel_snowspeeder_SWL.png",
+    img: "https://www.fantastic-modelers.fr/wp-content/uploads/2021/04/tailles-marcheurs.jpg",
     description: "Check out the land and air vehicles.",
   },
 ];
