@@ -1,10 +1,10 @@
+import { useState } from "react";
 import { getPeople } from "@/api/api";
-import { GenericResourcePage } from "@/components";
+import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
+import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
+import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
 import { PeopleList } from "./components/PeopleList/PeopleList";
-import {
-  PeopleFilterForm,
-  type PeopleFormData,
-} from "./components/PeopleFilterForm/PeopleFilterForm";
+import { PeopleFilterForm, type PeopleFormData } from "./components/PeopleFilterForm/PeopleFilterForm";
 import { PeopleModal } from "./components/PeopleModal/PeopleModal";
 import { matchesSearch, matchesExact } from "@/utilities/filter-utils";
 import type { IPeople } from "@/types";
@@ -19,7 +19,7 @@ const peoplePredicate = (person: IPeople, filters: PeopleFormData) => {
 const INITIAL_FILTERS: PeopleFormData = { name: "", gender: "" };
 
 export const People = () => {
-  const predicate = peoplePredicate;
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { 
     data, 
@@ -35,25 +35,40 @@ export const People = () => {
     fetcher: getPeople,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
-    predicate,
+    predicate: peoplePredicate,
   });
 
-return (
-    <GenericResourcePage
-      title="People"
-      data={data}
-      allData={allData}
-      isLoading={isLoading}
-      error={error}
-      filters={filters}
-      setFilters={setFilters}
-      resetFilters={resetFilters}
-      predicate={predicate}
-      FilterForm={PeopleFilterForm}
-      List={PeopleList}
-      Modal={PeopleModal}
-      pagination={pagination}
-    />
+  return (
+    <ResourceLayout title="People" isLoading={isLoading} error={error}>
+      <div className="bg-base-200 p-4 rounded-lg shadow-md mb-6">
+        <PeopleFilterForm
+          onSubmit={setFilters}
+          onReset={resetFilters}
+          defaultValues={filters}
+          resourceList={allData}
+        />
+      </div>
+
+      <ActiveFilters filters={filters} onReset={resetFilters} />
+
+      {data.length === 0 ? (
+        <div className="alert alert-info">No people found matching your criteria.</div>
+      ) : (
+        <>
+          <div className="mb-4 text-sm opacity-70">Showing {data.length} results</div>
+          <PeopleList data={data} onView={setSelectedId} />
+          
+          <PaginationControls
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onNext={pagination.nextPage}
+            onPrev={pagination.prevPage}
+          />
+        </>
+      )}
+
+      <PeopleModal id={selectedId} onClose={() => setSelectedId(null)} />
+    </ResourceLayout>
   );
 };
 

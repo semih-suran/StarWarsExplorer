@@ -1,7 +1,6 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { api } from "@/api/api";
+import { api, API_CONFIG } from "@/api/api";
 import { POSTERS_BY_EPISODE } from "../FilmsPosterMap";
-import { API_CONFIG } from "@/api/api";
 
 type FilmDetail = {
   title: string;
@@ -29,44 +28,34 @@ type Props = {
   onClose: () => void;
 };
 
-export default function FilmsModal({ id, onClose }: Props) {
+export const FilmsModal = ({ id, onClose }: Props) => {
   const { data, isLoading, isError }: UseQueryResult<FilmDetail, Error> =
     useQuery({
       queryKey: ["film", id],
       queryFn: () => fetchFilm(id!),
       enabled: Boolean(id),
-    staleTime: API_CONFIG.staleTime,
+      staleTime: API_CONFIG.staleTime,
     });
 
   if (!id) return null;
 
   return (
-    <div
-      className="modal modal-open"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="film-modal-title"
-    >
+    <div className="modal modal-open" role="dialog" aria-modal="true">
       <div className="modal-box max-w-3xl">
         <button
           type="button"
           className="btn btn-ghost btn-sm btn-circle absolute right-2 top-2"
           onClick={onClose}
-          aria-label="Close"
         >
           ✕
         </button>
 
-        {isLoading && <div className="py-8">Loading…</div>}
+        {isLoading && <div className="py-8 text-center">Loading details...</div>}
 
         {isError && (
           <div className="alert alert-error">
-            Error loading film details
-            <div className="mt-2">
-              <button className="btn btn-xs" onClick={() => onClose()}>
-                Close
-              </button>
-            </div>
+            <span>Error loading film details</span>
+            <button className="btn btn-xs" onClick={onClose}>Close</button>
           </div>
         )}
 
@@ -76,48 +65,34 @@ export default function FilmsModal({ id, onClose }: Props) {
               <img
                 src={
                   POSTERS_BY_EPISODE[data.episode_id] ??
-                  `https://placehold.co/400x600?text=${encodeURIComponent(
-                    data.title
-                  )}`
+                  `https://placehold.co/400x600?text=${encodeURIComponent(data.title)}`
                 }
                 alt={data.title}
-                className="rounded-md"
+                className="rounded-md object-cover"
               />
             </figure>
 
-            <div className="w-full lg:w-2/3">
-              <h3 id="film-modal-title" className="text-2xl font-bold">
-                {`${data.title}`}
-              </h3>
-
+            <div className="w-full lg:w-2/3 space-y-1">
+              <h3 className="text-2xl font-bold text-yellow-400">{data.title}</h3>
               <div className="mt-3 space-y-2 text-sm">
-                <p>
-                  <strong>Director:</strong> {data.director}
-                </p>
-                <p>
-                  <strong>Producer(s):</strong> {data.producer}
-                </p>
-                <p>
-                  <strong>Release:</strong> {data.release_date}
-                </p>
+                <p><strong>Director:</strong> {data.director}</p>
+                <p><strong>Producer(s):</strong> {data.producer}</p>
+                <p><strong>Release:</strong> {data.release_date}</p>
                 <div>
                   <strong>Opening crawl:</strong>
-                  <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed">
+                  <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed opacity-80">
                     {data.opening_crawl}
                   </p>
                 </div>
-                <p>
-                  <strong>Characters:</strong> {data.characters?.length ?? 0}
-                </p>
-                <p>
-                  <strong>Planets:</strong> {data.planets?.length ?? 0}
-                </p>
+                
+                <div className="divider my-2"></div>
+                <div className="flex gap-4 text-sm opacity-70">
+                  <p><strong>Characters:</strong> {data.characters?.length ?? 0}</p>
+                  <p><strong>Planets:</strong> {data.planets?.length ?? 0}</p>
+                </div>
               </div>
-
               <div className="modal-action mt-4">
-                <button className="btn btn-ghost" onClick={onClose}>
-                  Close
-                </button>
+                <button className="btn btn-ghost" onClick={onClose}>Close</button>
               </div>
             </div>
           </div>
@@ -125,4 +100,4 @@ export default function FilmsModal({ id, onClose }: Props) {
       </div>
     </div>
   );
-}
+};

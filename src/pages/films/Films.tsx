@@ -1,17 +1,15 @@
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 import { getFilms, API_CONFIG } from "@/api/api";
-import { GenericResourcePage } from "@/components";
+import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
+import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
+import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
 import { FilmsList } from "./components/FilmsList/FilmsList";
-import {
-  FilmsFilterForm,
-  type FilmsFormData,
-} from "./components/FilmsFilterForm/FilmsFilterForm";
-import FilmsModal from "./components/FilmsModal/FilmsModal";
+import { FilmsFilterForm, type FilmsFormData } from "./components/FilmsFilterForm/FilmsFilterForm";
+import { FilmsModal } from "./components/FilmsModal/FilmsModal";
 import { matchesSearch } from "@/utilities/filter-utils";
 import type { IFilm } from "@/types";
 import { useResourceLogic } from "@/hooks/useResourceLogic";
-
 import HeroCarousel from "./components/HeroCarousel/HeroCarousel";
 import { POSTERS_BY_EPISODE } from "./components/FilmsPosterMap";
 
@@ -24,7 +22,8 @@ const filmsPredicate = (film: IFilm, filters: FilmsFormData) => {
 const INITIAL_FILTERS: FilmsFormData = { name: "", director: "" };
 
 export const Films = () => {
-  const predicate = filmsPredicate;
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
   const {
     data,
     allData,
@@ -39,7 +38,7 @@ export const Films = () => {
     fetcher: getFilms,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
-    predicate,
+    predicate: filmsPredicate,
   });
 
   const { data: carouselData } = useQuery({
@@ -50,9 +49,7 @@ export const Films = () => {
 
   const carouselItems = useMemo(() => {
     const source = carouselData?.results || [];
-
     const sorted = [...source].sort((a, b) => a.episode_id - b.episode_id);
-
     return sorted.map((film) => ({
       img: POSTERS_BY_EPISODE[film.episode_id] ?? "",
       title: film.title,
@@ -61,23 +58,42 @@ export const Films = () => {
   }, [carouselData]);
 
   return (
-    <GenericResourcePage
-      title="Films"
-      data={data}
-      allData={allData}
-      isLoading={isLoading}
-      error={error}
-      filters={filters}
-      setFilters={setFilters}
-      resetFilters={resetFilters}
-      predicate={predicate}
-      FilterForm={FilmsFilterForm}
-      List={FilmsList}
-      Modal={FilmsModal}
-      pagination={pagination}
-    >
-      {carouselItems.length > 0 && <HeroCarousel items={carouselItems} />}
-    </GenericResourcePage>
+    <ResourceLayout title="Films" isLoading={isLoading} error={error}>
+      {carouselItems.length > 0 && (
+        <div className="mb-8">
+          <HeroCarousel items={carouselItems} />
+        </div>
+      )}
+
+      <div className="bg-base-200 p-4 rounded-lg shadow-md mb-6">
+        <FilmsFilterForm
+          onSubmit={setFilters}
+          onReset={resetFilters}
+          defaultValues={filters}
+          resourceList={allData}
+        />
+      </div>
+
+      <ActiveFilters filters={filters} onReset={resetFilters} />
+
+      {data.length === 0 ? (
+        <div className="alert alert-info">No films found matching your criteria.</div>
+      ) : (
+        <>
+          <div className="mb-4 text-sm opacity-70">Showing {data.length} results</div>
+          <FilmsList data={data} onView={setSelectedId} />
+          
+          <PaginationControls
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onNext={pagination.nextPage}
+            onPrev={pagination.prevPage}
+          />
+        </>
+      )}
+
+      <FilmsModal id={selectedId} onClose={() => setSelectedId(null)} />
+    </ResourceLayout>
   );
 };
 

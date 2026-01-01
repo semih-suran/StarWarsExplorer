@@ -26,17 +26,21 @@ export const PeopleFilterForm = ({ onSubmit, onReset, defaultValues }: Props) =>
   };
 
   return (
-    <form onSubmit={handleManualSubmit} className="flex gap-4 items-end">
-      <div className="flex-1">
-        <label className="label font-bold">Name</label>
+    <form onSubmit={handleManualSubmit} className="flex gap-4 mb-4 flex-col md:flex-row items-end">
+      <div className="w-full">
+        <label className="label">
+          <span className="label-text">Name</span>
+        </label>
         <input
           {...register("name")}
           className="input input-bordered w-full"
           placeholder="Search..."
         />
       </div>
-      <div className="flex-1">
-        <label className="label font-bold">Gender</label>
+      <div className="w-full max-w-xs">
+        <label className="label">
+          <span className="label-text">Gender</span>
+        </label>
         <select {...register("gender")} className="select select-bordered w-full">
           <option value="">Any</option>
           <option value="male">Male</option>
@@ -45,12 +49,19 @@ export const PeopleFilterForm = ({ onSubmit, onReset, defaultValues }: Props) =>
           <option value="hermaphrodite">Hermaphrodite</option>
         </select>
       </div>
-      <button type="submit" className="btn btn-primary">
-        Filter
-      </button>
-      <button type="button" className="btn btn-ghost" onClick={onReset}>
-        Reset
-      </button>
+      <div className="flex gap-2">
+        <button type="submit" className="btn btn-primary">Filter</button>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={() => {
+            reset({ name: "", gender: "" });
+            onReset();
+          }}
+        >
+          Reset
+        </button>
+      </div>
     </form>
   );
 };

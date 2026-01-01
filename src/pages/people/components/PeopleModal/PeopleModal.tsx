@@ -115,32 +115,12 @@ export const PeopleModal = ({ id, onClose }: Props) => {
                   {data.eye_color}
                 </p>
               </div>
-
-              <div className="divider my-4"></div>
-
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="bg-base-200 p-3 rounded-lg text-center">
-                  <div className="text-2xl font-bold">{data.films.length}</div>
-                  <div className="text-xs uppercase tracking-wider opacity-60">
-                    Films
-                  </div>
-                </div>
-                <div className="bg-base-200 p-3 rounded-lg text-center">
-                  <div className="text-2xl font-bold">
-                    {data.vehicles.length}
-                  </div>
-                  <div className="text-xs uppercase tracking-wider opacity-60">
-                    Vehicles
-                  </div>
-                </div>
-                <div className="bg-base-200 p-3 rounded-lg text-center">
-                  <div className="text-2xl font-bold">
-                    {data.starships.length}
-                  </div>
-                  <div className="text-xs uppercase tracking-wider opacity-60">
-                    Starships
-                  </div>
-                </div>
+              
+              <div className="divider my-2"></div>
+              <div className="flex gap-4 text-sm opacity-70">
+                <p><strong>Films:</strong> {data.films.length ?? 0}</p>
+                <p><strong>Vehicles:</strong> {data.vehicles.length ?? 0}</p>
+                <p><strong>Starships:</strong> {data.starships.length ?? 0}</p>
               </div>
 
               <div className="modal-action mt-6">

@@ -19,9 +19,9 @@ export const StarshipsList = ({ data, onView }: Props) => {
           onView={onView}
           image={`https://placehold.co/400x400/000000/FFFFFF?text=${item.name}`}
         >
-          <div className="flex flex-col gap-1 mt-2">
-            <div className="text-xs opacity-70">Class: {item.starship_class}</div>
-            <div className="badge badge-accent badge-outline">{item.manufacturer.split(",")[0]}</div>
+          <div className="flex flex-wrap justify-center gap-2 mt-2 w-full">
+            <div className="badge badge-primary badge-outline">Class: {item.starship_class}</div>
+            <div className="badge badge-secondary badge-outline">{item.manufacturer.split(",")[0]}</div>
           </div>
         </Card>
       ))}

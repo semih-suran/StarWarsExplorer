@@ -4,11 +4,11 @@ import { Alert } from "@/components/Alert/Alert";
 import { Loading } from "@/components/Loading/Loading";
 import { useFavoritesData } from "@/hooks/useFavoritesData";
 import { PeopleModal } from "@/pages/people/components/PeopleModal/PeopleModal";
-import FilmsModal from "@/pages/films/components/FilmsModal/FilmsModal";
-import PlanetsModal from "@/pages/planets/components/PlanetsModal/PlanetsModal";
-import SpeciesModal from "@/pages/species/components/SpeciesModal/SpeciesModal";
-import StarshipsModal from "@/pages/starships/components/StarshipsModal/StarshipsModal";
-import VehiclesModal from "@/pages/vehicles/components/VehiclesModal/VehiclesModal";
+import { FilmsModal } from "@/pages/films/components/FilmsModal/FilmsModal";
+import { PlanetsModal } from "@/pages/planets/components/PlanetsModal/PlanetsModal";
+import { SpeciesModal } from "@/pages/species/components/SpeciesModal/SpeciesModal";
+import { StarshipsModal } from "@/pages/starships/components/StarshipsModal/StarshipsModal";
+import { VehiclesModal } from "@/pages/vehicles/components/VehiclesModal/VehiclesModal";
 
 import type { 
   IPeople, 

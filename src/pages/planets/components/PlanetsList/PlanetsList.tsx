@@ -19,9 +19,9 @@ export const PlanetsList = ({ data, onView }: Props) => {
           onView={onView}
           image={`https://placehold.co/400x400/000000/FFFFFF?text=${item.name}`}
         >
-          <div className="flex flex-wrap gap-2 mt-2">
-            <div className="badge badge-neutral">{item.climate}</div>
-            <div className="badge badge-outline">{item.population === "unknown" ? "?" : "Populated"}</div>
+          <div className="flex flex-wrap justify-center gap-2 mt-2 w-full">
+            <div className="badge badge-primary badge-outline">{item.climate}</div>
+            <div className="badge badge-secondary badge-outline">{item.population === "unknown" ? "?" : "Populated"}</div>
           </div>
         </Card>
       ))}
