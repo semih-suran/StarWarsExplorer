@@ -50,7 +50,7 @@ export const PeopleFilterForm = ({ onSubmit, onReset, defaultValues }: Props) =>
         </select>
       </div>
       <div className="flex gap-2">
-        <button type="submit" className="btn btn-primary">Filter</button>
+        <button type="submit" className="btn btn-warning">Filter</button>
         <button
           type="button"
           className="btn btn-ghost"

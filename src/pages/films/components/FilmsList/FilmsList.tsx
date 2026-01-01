@@ -26,8 +26,8 @@ export const FilmsList = ({ data, onView }: Props) => {
             image={poster}
           >
             <div className="flex flex-wrap justify-center gap-2 mt-2 w-full">
-              <div className="badge badge-primary badge-outline">Episode {item.episode_id}</div>
-              <div className="badge badge-secondary badge-outline">{item.release_date}</div>
+              <div className="badge badge-outline">Episode {item.episode_id}</div>
+              <div className="badge badge-outline">{item.release_date}</div>
             </div>
           </Card>
         );

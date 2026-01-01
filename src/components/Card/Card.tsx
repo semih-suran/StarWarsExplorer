@@ -50,7 +50,7 @@ export const Card = ({ id, url, title, image, children, onView }: CardProps) => 
           </button>
 
           <button 
-            className="btn btn-primary btn-sm px-6"
+            className="btn btn-warning btn-sm px-6"
             onClick={() => onView && onView(id)}
           >
             Details

@@ -20,8 +20,8 @@ export const VehiclesList = ({ data, onView }: Props) => {
           image={`https://placehold.co/400x400/000000/FFFFFF?text=${item.name}`}
         >
           <div className="flex flex-wrap justify-center gap-2 mt-2 w-full">
-            <div className="badge badge-primary badge-outline">Class: {item.vehicle_class}</div>
-            <div className="badge badge-secondary badge-outline">Crew: {item.crew}</div>
+            <div className="badge badge-outline">Class: {item.vehicle_class}</div>
+            <div className="badge badge-outline">Crew: {item.crew}</div>
           </div>
         </Card>
       ))}
