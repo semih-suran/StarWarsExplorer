@@ -1,6 +1,5 @@
 import { Card } from "@/components/Card/Card";
 import type { IPlanet } from "@/types";
-import { getIdFromUrl } from "@/utilities/get-id-from-url";
 
 type Props = {
   data: IPlanet[];
@@ -10,22 +9,22 @@ type Props = {
 export const PlanetsList = ({ data, onView }: Props) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {data.map((planet) => {
-        const id = getIdFromUrl(planet.url);
-        return (
-          <Card
-            key={id}
-            id={id}
-            title={planet.name}
-            onView={onView}
-            type="planets"
-            image={`https://placehold.co/400x400/000000/FFFFFF?text=${planet.name}`}
-          >
-            <p>Terrain: {planet.terrain}</p>
-            <p>Population: {planet.population}</p>
-          </Card>
-        );
-      })}
+      {data.map((item) => (
+        <Card
+          key={item.url}
+          id={item.url.split("/").filter(Boolean).pop()!}
+          url={item.url}
+          title={item.name}
+          type="planets"
+          onView={onView}
+          image={`https://placehold.co/400x400/000000/FFFFFF?text=${item.name}`}
+        >
+          <div className="flex flex-wrap gap-2 mt-2">
+            <div className="badge badge-neutral">{item.climate}</div>
+            <div className="badge badge-outline">{item.population === "unknown" ? "?" : "Populated"}</div>
+          </div>
+        </Card>
+      ))}
     </div>
   );
 };

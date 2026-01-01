@@ -4,7 +4,7 @@ import { NavigationBurgerIcon } from "./NavigationBurgerIcon/NavigationBurgerIco
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 
 export const Navigation = () => {
-  const favoritesCount = useFavoritesStore((state) => state.favorites.length);
+  const favoritesCount = useFavoritesStore((state) => state.favoriteIds.length);
 
   const closeDropdown = () => {
     const elem = document.activeElement as HTMLElement;
@@ -20,7 +20,7 @@ export const Navigation = () => {
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
             <NavigationBurgerIcon />
           </div>
-          
+
           <ul
             tabIndex={0}
             className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"

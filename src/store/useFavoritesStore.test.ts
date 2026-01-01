@@ -1,60 +1,47 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useFavoritesStore } from "./useFavoritesStore";
-import type { FavoriteItem } from "./useFavoritesStore";
-
-const resetStore = () => {
-  useFavoritesStore.setState({ favorites: [] });
-};
 
 describe("useFavoritesStore", () => {
+  const itemUrl = "https://swapi.info/api/people/1";
+
   beforeEach(() => {
-    resetStore();
+    useFavoritesStore.setState({ favoriteIds: [] });
   });
 
   it("should start with an empty list", () => {
-    const { favorites } = useFavoritesStore.getState();
-    expect(favorites).toEqual([]);
+    const { favoriteIds } = useFavoritesStore.getState();
+    expect(favoriteIds).toEqual([]);
   });
 
   it("should add a favorite item", () => {
-    const item: FavoriteItem = { id: "1", name: "Luke", type: "people", image: "luke.jpg" };
-    
-    useFavoritesStore.getState().addFavorite(item);
-    
-    const { favorites } = useFavoritesStore.getState();
-    expect(favorites).toHaveLength(1);
-    expect(favorites[0]).toEqual(item);
+    useFavoritesStore.getState().addFavorite(itemUrl);
+
+    const { favoriteIds } = useFavoritesStore.getState();
+    expect(favoriteIds).toHaveLength(1);
+    expect(favoriteIds[0]).toBe(itemUrl);
   });
 
-  it("should prevent duplicate favorites (Same ID + Same Type)", () => {
-    const item: FavoriteItem = { id: "1", name: "Luke", type: "people" };
+  it("should prevent duplicate favorites", () => {
+    useFavoritesStore.getState().addFavorite(itemUrl);
+    useFavoritesStore.getState().addFavorite(itemUrl);
 
-    useFavoritesStore.getState().addFavorite(item);
-    useFavoritesStore.getState().addFavorite(item);
-
-    const { favorites } = useFavoritesStore.getState();
-    expect(favorites).toHaveLength(1);
-  });
-
-  it("should allow same ID but different Type (ID Collision fix)", () => {
-    const luke: FavoriteItem = { id: "1", name: "Luke", type: "people" };
-    const tatooine: FavoriteItem = { id: "1", name: "Tatooine", type: "planets" };
-    
-    useFavoritesStore.getState().addFavorite(luke);
-    useFavoritesStore.getState().addFavorite(tatooine);
-    
-    const { favorites } = useFavoritesStore.getState();
-    expect(favorites).toHaveLength(2);
+    const { favoriteIds } = useFavoritesStore.getState();
+    expect(favoriteIds).toHaveLength(1);
   });
 
   it("should remove a favorite", () => {
-    const item: FavoriteItem = { id: "1", name: "Luke", type: "people" };
-    useFavoritesStore.getState().addFavorite(item);
+    useFavoritesStore.getState().addFavorite(itemUrl);
+    expect(useFavoritesStore.getState().favoriteIds).toHaveLength(1);
 
-    expect(useFavoritesStore.getState().favorites).toHaveLength(1);
+    useFavoritesStore.getState().removeFavorite(itemUrl);
+    expect(useFavoritesStore.getState().favoriteIds).toHaveLength(0);
+  });
 
-    useFavoritesStore.getState().removeFavorite("1", "people");
+  it("should toggle a favorite", () => {
+    useFavoritesStore.getState().toggleFavorite(itemUrl);
+    expect(useFavoritesStore.getState().favoriteIds).toContain(itemUrl);
 
-    expect(useFavoritesStore.getState().favorites).toHaveLength(0);
+    useFavoritesStore.getState().toggleFavorite(itemUrl);
+    expect(useFavoritesStore.getState().favoriteIds).not.toContain(itemUrl);
   });
 });

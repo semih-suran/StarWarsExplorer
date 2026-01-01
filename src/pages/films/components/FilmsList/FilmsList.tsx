@@ -1,41 +1,34 @@
 import { Card } from "@/components/Card/Card";
+import type { IFilm } from "@/types";
 import { POSTERS_BY_EPISODE } from "../FilmsPosterMap";
-import type { Film } from "@/types/film";
-import { getIdFromUrl } from "@/utilities/get-id-from-url";
 
 type Props = {
-  data?: Film[];
+  data: IFilm[];
   onView?: (id: string) => void;
 };
 
 export const FilmsList = ({ data, onView }: Props) => {
-  if (!data || data.length === 0) {
-    return (
-      <div className="col-span-full p-6 text-center text-sm text-muted">
-        No results
-      </div>
-    );
-  }
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {data.map((film) => {
-        const id = getIdFromUrl(film.url);
+      {data.map((item) => {
         const poster =
-          POSTERS_BY_EPISODE[film.episode_id] ??
-          "https://starwars-visualguide.com/assets/img/films/placeholder.jpg";
+          POSTERS_BY_EPISODE[item.episode_id] ??
+          `https://placehold.co/400x600/000000/FFFFFF?text=${item.title}`;
 
         return (
           <Card
-            key={id}
-            id={id}
-            title={film.title}
-            onView={onView}
+            key={item.url}
+            id={item.url.split("/").filter(Boolean).pop()!}
+            url={item.url}
+            title={item.title}
             type="films"
+            onView={onView}
             image={poster}
           >
-            <p>Director: {film.director}</p>
-            <p>Release: {film.release_date}</p>
+            <div className="flex justify-between items-end h-full">
+              <div className="badge badge-outline">Episode {item.episode_id}</div>
+              <div className="text-xs opacity-50">{item.release_date}</div>
+            </div>
           </Card>
         );
       })}
