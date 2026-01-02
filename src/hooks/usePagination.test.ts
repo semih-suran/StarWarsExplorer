@@ -1,57 +1,74 @@
+import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
-import { renderHook, act } from "@/test/test-utils";
 import { usePagination } from "./usePagination";
 
-describe("usePagination Hook", () => {
-  const mockItems = Array.from({ length: 25 }, (_, i) => ({ id: i }));
+const mockItems = Array.from({ length: 25 }, (_, i) => ({ id: i + 1 }));
 
-  it("should initialize on page 1 with correct total pages", () => {
-    const { result } = renderHook(() => usePagination(mockItems, 10));
+describe("usePagination", () => {
+  it("should initialize correctly", () => {
+    const { result } = renderHook(() => 
+      usePagination({ totalItems: mockItems.length, itemsPerPage: 10 })
+    );
 
     expect(result.current.page).toBe(1);
     expect(result.current.totalPages).toBe(3);
-    expect(result.current.paginated).toHaveLength(10);
+    expect(result.current.startIndex).toBe(0);
+    expect(result.current.endIndex).toBe(10);
   });
 
-  it("should go to the next page", () => {
-    const { result } = renderHook(() => usePagination(mockItems, 10));
+  it("should navigate to next page", () => {
+    const { result } = renderHook(() => 
+      usePagination({ totalItems: mockItems.length, itemsPerPage: 10 })
+    );
 
     act(() => {
-      result.current.next();
+      result.current.nextPage();
     });
 
     expect(result.current.page).toBe(2);
-    expect(result.current.paginated[0].id).toBe(10);
+    expect(result.current.startIndex).toBe(10);
+    expect(result.current.endIndex).toBe(20);
   });
 
-  it("should not go past the last page", () => {
-    const { result } = renderHook(() => usePagination(mockItems, 10));
-
-    act(() => { result.current.goTo(3); });
-    expect(result.current.page).toBe(3);
-
-    act(() => { result.current.next(); });
-    expect(result.current.page).toBe(3);
-  });
-
-  it("should recalculate totalPages and allow manual reset when data shrinks", () => {
-    const { result, rerender } = renderHook(
-      ({ data }) => usePagination(data, 10),
-      { initialProps: { data: mockItems } }
+  it("should jump to specific page", () => {
+    const { result } = renderHook(() => 
+      usePagination({ totalItems: mockItems.length, itemsPerPage: 10 })
     );
 
-    act(() => { result.current.goTo(3); });
+    act(() => {
+      result.current.setPage(3);
+    });
+
     expect(result.current.page).toBe(3);
+  });
 
-    const smallData = [{ id: 1 }, { id: 2 }];
-    rerender({ data: smallData });
+  it("should not exceed bounds", () => {
+    const { result } = renderHook(() => 
+      usePagination({ totalItems: mockItems.length, itemsPerPage: 10 })
+    );
 
-    expect(result.current.totalPages).toBe(1);
+    act(() => {
+      result.current.nextPage();
+      result.current.nextPage();
+      result.current.nextPage();
+    });
+
     expect(result.current.page).toBe(3);
-    expect(result.current.paginated).toHaveLength(2);
-    expect(result.current.paginated[0].id).toBe(1);
+  });
+  
+  it("should adjust page if totalItems decreases", () => {
+    const { result, rerender } = renderHook(
+      ({ total }) => usePagination({ totalItems: total, itemsPerPage: 10 }),
+      { initialProps: { total: 100 } }
+    );
 
-    act(() => { result.current.goTo(1); });
+    act(() => {
+        result.current.setPage(10);
+    });
+    expect(result.current.page).toBe(10);
+
+    rerender({ total: 5 });
+
     expect(result.current.page).toBe(1);
   });
 });

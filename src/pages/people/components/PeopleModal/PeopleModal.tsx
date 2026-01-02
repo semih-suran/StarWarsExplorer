@@ -81,7 +81,7 @@ export const PeopleModal = ({ id, onClose }: Props) => {
             </figure>
 
             <div className="w-full lg:w-2/3">
-              <h3 id="person-modal-title" className="text-3xl font-bold mb-4">
+              <h3 id="person-modal-title" className="text-2xl font-bold text-yellow-400">
                 {data.name}
               </h3>
 
@@ -119,8 +119,8 @@ export const PeopleModal = ({ id, onClose }: Props) => {
               <div className="divider my-2"></div>
               <div className="flex gap-4 text-sm opacity-70">
                 <p><strong>Films:</strong> {data.films.length ?? 0}</p>
-                <p><strong>Vehicles:</strong> {data.vehicles.length ?? 0}</p>
                 <p><strong>Starships:</strong> {data.starships.length ?? 0}</p>
+                <p><strong>Vehicles:</strong> {data.vehicles.length ?? 0}</p>
               </div>
 
               <div className="modal-action mt-6">

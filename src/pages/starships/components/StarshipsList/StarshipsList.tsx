@@ -21,7 +21,7 @@ export const StarshipsList = ({ data, onView }: Props) => {
         >
           <div className="flex flex-wrap justify-center gap-2 mt-2 w-full">
             <div className="badge badge-outline">Class: {item.starship_class}</div>
-            <div className="badge badge-outline">{item.manufacturer.split(",")[0]}</div>
+            <div className="badge badge-outline">Manufacturer: {item.manufacturer.split(",")[0]}</div>
           </div>
         </Card>
       ))}

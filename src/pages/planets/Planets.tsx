@@ -14,6 +14,8 @@ const INITIAL_FILTERS: PlanetsFormData = { name: "", terrain: "" };
 export const Planets = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const fetchAllPlanets = async () => getPlanets(1, "");
+
   const { 
     data, 
     allData,
@@ -25,7 +27,7 @@ export const Planets = () => {
     pagination 
   } = useResourceLogic({
     resourceName: "planets",
-    fetcher: getPlanets,
+    fetcher: fetchAllPlanets,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
     predicate: planetsPredicate,
@@ -37,7 +39,7 @@ export const Planets = () => {
         <PlanetsFilterForm
           onSubmit={setFilters}
           onReset={resetFilters}
-          defaultValues={filters}
+          defaultValues={filters as PlanetsFormData}
           resourceList={allData}
         />
       </div>

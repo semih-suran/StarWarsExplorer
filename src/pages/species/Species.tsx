@@ -21,6 +21,8 @@ const INITIAL_FILTERS: SpeciesFormData = { name: "", classification: "" };
 export const Species = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const fetchAllSpecies = async () => getSpecies(1, "");
+
   const { 
     data, 
     allData,
@@ -32,7 +34,7 @@ export const Species = () => {
     pagination 
   } = useResourceLogic({
     resourceName: "species",
-    fetcher: getSpecies,
+    fetcher: fetchAllSpecies,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
     predicate: speciesPredicate,
@@ -44,7 +46,7 @@ export const Species = () => {
         <SpeciesFilterForm
           onSubmit={setFilters}
           onReset={resetFilters}
-          defaultValues={filters}
+          defaultValues={filters as SpeciesFormData}
           resourceList={allData}
         />
       </div>

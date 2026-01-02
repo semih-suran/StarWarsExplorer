@@ -21,6 +21,8 @@ const INITIAL_FILTERS: StarshipsFormData = { name: "", starship_class: "" };
 export const Starships = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const fetchAllStarships = async () => getStarships(1, "");
+
   const { 
     data, 
     allData,
@@ -32,7 +34,7 @@ export const Starships = () => {
     pagination 
   } = useResourceLogic({
     resourceName: "starships",
-    fetcher: getStarships,
+    fetcher: fetchAllStarships,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
     predicate: starshipsPredicate,
@@ -44,7 +46,7 @@ export const Starships = () => {
         <StarshipsFilterForm
           onSubmit={setFilters}
           onReset={resetFilters}
-          defaultValues={filters}
+          defaultValues={filters as StarshipsFormData}
           resourceList={allData}
         />
       </div>

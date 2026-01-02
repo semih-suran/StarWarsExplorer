@@ -21,6 +21,8 @@ const INITIAL_FILTERS: PeopleFormData = { name: "", gender: "" };
 export const People = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const fetchAllPeople = async () => getPeople(1, "");
+
   const { 
     data, 
     allData,
@@ -32,7 +34,7 @@ export const People = () => {
     pagination 
   } = useResourceLogic({
     resourceName: "people",
-    fetcher: getPeople,
+    fetcher: fetchAllPeople,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
     predicate: peoplePredicate,
@@ -44,7 +46,7 @@ export const People = () => {
         <PeopleFilterForm
           onSubmit={setFilters}
           onReset={resetFilters}
-          defaultValues={filters}
+          defaultValues={filters as PeopleFormData}
           resourceList={allData}
         />
       </div>
