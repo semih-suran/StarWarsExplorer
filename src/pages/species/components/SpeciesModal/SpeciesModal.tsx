@@ -49,7 +49,7 @@ export const SpeciesModal = ({ id, onClose }: Props) => {
               <h3 className="text-2xl font-bold text-yellow-400">{data.name}</h3>
               <p><strong>Classification:</strong> {data.classification}</p>
               <p><strong>Designation:</strong> {data.designation}</p>
-              <p><strong>Avg Height:</strong> {data.average_height}cm</p>
+              <p><strong>Avg Height:</strong> {data.average_height} cm</p>
               <p><strong>Skin Colors:</strong> {data.skin_colors}</p>
               <p><strong>Hair Colors:</strong> {data.hair_colors}</p>
               <p><strong>Eye Colors:</strong> {data.eye_colors}</p>

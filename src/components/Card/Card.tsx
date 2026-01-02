@@ -30,7 +30,8 @@ export const Card = ({ id, url, title, image, children, onView, type }: CardProp
     toggleSelection({ 
       id, 
       name: title, 
-      type 
+      type,
+      url 
     });
   };
 
@@ -44,7 +45,7 @@ export const Card = ({ id, url, title, image, children, onView, type }: CardProp
       <div className="absolute top-4 right-4 z-20">
         <input 
           type="checkbox"
-          className="checkbox checkbox-warning checkbox-lg border-2 border-base-100 shadow-md"
+          className="checkbox checkbox-warning checkbox-lg border-2 border-warning bg-base-100/50 shadow-md backdrop-blur-sm"
           checked={isSelected}
           onChange={handleSelectionToggle}
           aria-label={`Select ${title} for comparison`}

@@ -54,7 +54,7 @@ export const Starships = () => {
       <ActiveFilters filters={filters} onReset={resetFilters} />
 
       {data.length === 0 ? (
-        <div className="alert alert-info">No starships found matching your criteria.</div>
+        <div className="alert alert-warning">No starships found matching your criteria.</div>
       ) : (
         <>
           <div className="mb-4 text-sm opacity-70">Showing {data.length} results</div>

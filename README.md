@@ -43,7 +43,7 @@ npm run build
 
 **Data Integrity:** Zod (Runtime Schema Validation)
 
-**State Management:** Zustand (with persistence middleware)
+**State Management:** Zustand (with persistence middleware & strict type locking)
 
 **Data Fetching:** TanStack Query (React Query) v5
 
@@ -59,31 +59,30 @@ I have organized the codebase using a Feature-First (Co-location) architecture. 
 
 ```
 
-src/ 
-├── .github/workflows/          # CI/CD Pipeline Configuration 
-├── api/ 
-│ └── api.ts                    # Centralized Adapter (Zod-validated) 
-├── components/                 # Shared UI components 
-│ ├── ResourceLayout/           # Reusable Application Shells 
-│ │ └── ResourceLayout.tsx 
-│ └── ... 
-├── hooks/                      # Reusable Logic 
-│ ├── useFavoritesData.ts       # Live-fetching logic for Favorites (SSOT) 
-│ ├── usePagination.ts          # Deterministic pagination logic 
-│ └── ... 
-├── pages/                      # Domain Views 
-│ ├── planets/ 
-│ │ ├── Planets.tsx             # View Layer (Composes Layout + Filters + List) 
-│ │ ├── Planets.helpers.ts 
-│ │ └── ... 
-├── store/                      # Global state (Zustand) 
-├── types/                      # TypeScript Interfaces (Inferred from Zod) 
+src/
+├── .github/workflows/          # CI/CD Pipeline Configuration
+├── api/
+│ └── api.ts                    # Centralized Adapter (Zod-validated)
+├── components/                 # Shared UI components
+│ ├── ResourceLayout/           # Reusable Application Shells
+│ │ └── ResourceLayout.tsx
+│ └── ...
+├── hooks/                      # Reusable Logic
+│ ├── useFavoritesData.ts       # Live-fetching logic for Favorites (SSOT)
+│ ├── usePagination.ts          # Deterministic pagination logic
+│ └── ...
+├── pages/                      # Domain Views
+│ ├── planets/
+│ │ ├── Planets.tsx             # View Layer (Composes Layout + Filters + List)
+│ │ ├── Planets.helpers.ts
+│ │ └── ...
+├── store/                      # Global state (Zustand)
+├── types/                      # TypeScript Interfaces (Inferred from Zod)
 └── utilities/                  # Global Helper functions
 
 ```
 
 ## 🧠 Architectural Decisions & Trade-offs
-
 
 ### 1. The "Adapter" Pattern with Runtime Validation
 
@@ -91,11 +90,11 @@ src/
 
 **Why:** TypeScript interfaces disappear at runtime. We need to guarantee that the data flowing into our hooks matches our types exactly.
 
-**Implementation:** 
+**Implementation:**
+
 - `schemas.ts`: Defines strict contracts for every entity.
 - `api.ts`: Validates incoming data using Zod.
 - **Hooks:** Custom hooks like `useUrlFilters` use Typescript Generics (`<T>`) to ensure that URL parameters are strictly typed to the specific resource being viewed.
-
 
 ### 2. Single Source of Truth (SSOT)
 
@@ -111,10 +110,9 @@ src/
 
 - **Benefit:** Users always see the live version of their favorites.
 
-
 ### 3. Automated Quality Control (CI/CD)
 
-**Decision:** Implemented a GitHub Actions pipeline (`ci.yml`).To enforce code quality automatically. 
+**Decision:** Implemented a GitHub Actions pipeline (`ci.yml`).To enforce code quality automatically.
 
 **Why:** To enforce code quality automatically. Every push triggers a workflow that:
 
@@ -128,12 +126,11 @@ src/
 
 5. Verifies the Production Build.
 
-
 ### 4. Concurrent-Safe State Orchestration
 
 **Decision:** Decoupled Pagination state from Reactive effects, enforcing "Event-Driven" updates.
 
-**Why:** Using `useEffect` or "Render-Phase Updates" to sync state (e.g., *if filters change, reset page*) causes tearing and infinite loops in React 19's Concurrent Rendering engine.
+**Why:** Using `useEffect` or "Render-Phase Updates" to sync state (e.g., _if filters change, reset page_) causes tearing and infinite loops in React 19's Concurrent Rendering engine.
 
 **Implementation:** The `usePagination` hook is "dumb" (pure state). The `useResourceLogic` hook acts as the orchestrator: when a user submits the Filter Form, it **imperatively** resets the pagination to Page 1 in the same event handler, ensuring a single, clean render cycle.
 
@@ -144,7 +141,6 @@ src/
 **Why:** The previous "One Component to Rule Them All" approach made it impossible to handle unique requirements (e.g., different caching strategies or banners) for specific resources without prop drilling.
 
 **Implementation:** Pages like `Planets.tsx` now explicitly compose their UI using `ResourceLayout`, injecting specific Filter and List components. This increases code volume slightly but drastically improves maintainability and flexibility.
-
 
 ### 6. Performance Optimizations
 
@@ -158,7 +154,8 @@ src/
 
 **Why:** To verify that the architecture can support features that persist across different routes (e.g., selecting a Planet, then navigating to Starships to select a vehicle) without rewriting individual page logic.
 
-**Implementation:** 
-- **State:** A `useSelectionStore` (Zustand) persists selections globally.
+**Implementation:**
+
+- **State:** A `useSelectionStore` (Zustand) persists selections globally with "Context Locking" (automatically clearing selections when switching resource types) and FIFO logic.
 - **UI Injection:** The "Comparison Bar" is injected directly into `ResourceLayout`.
 - **Result:** Every page (Planets, People, etc.) automatically gains "Compare" functionality without a single line of code change in the domain views, proving the architecture's extensibility.

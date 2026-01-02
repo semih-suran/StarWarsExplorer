@@ -47,7 +47,7 @@ export const Planets = () => {
       <ActiveFilters filters={filters} onReset={resetFilters} />
 
       {data.length === 0 ? (
-        <div className="alert alert-info">No results found matching your criteria.</div>
+        <div className="alert alert-warning">No results found matching your criteria.</div>
       ) : (
         <>
           <div className="mb-4 text-sm opacity-70">Showing {data.length} results</div>
