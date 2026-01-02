@@ -1,8 +1,12 @@
 import { useState } from "react";
+import { useFavoritesData } from "@/hooks/useFavoritesData";
+import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
 import { Card } from "@/components/Card/Card";
 import { Alert } from "@/components/Alert/Alert";
-import { Loading } from "@/components/Loading/Loading";
-import { useFavoritesData } from "@/hooks/useFavoritesData";
+import { placeholder } from "@/utilities/placeholder";
+import { POSTERS_BY_EPISODE } from "@/pages/films/components/FilmsPosterMap";
+import type { ResourceType } from "@/types";
+
 import { PeopleModal } from "@/pages/people/components/PeopleModal/PeopleModal";
 import { FilmsModal } from "@/pages/films/components/FilmsModal/FilmsModal";
 import { PlanetsModal } from "@/pages/planets/components/PlanetsModal/PlanetsModal";
@@ -10,52 +14,43 @@ import { SpeciesModal } from "@/pages/species/components/SpeciesModal/SpeciesMod
 import { StarshipsModal } from "@/pages/starships/components/StarshipsModal/StarshipsModal";
 import { VehiclesModal } from "@/pages/vehicles/components/VehiclesModal/VehiclesModal";
 
-import type { 
-  IPeople, 
-  IFilm, 
-  IPlanet, 
-  ISpecie, 
-  IStarship, 
-  IVehicle 
-} from "@/types";
+const getTypeFromUrl = (url: string): ResourceType => {
+  const parts = url.split("/").filter(Boolean);
+  const resource = parts[parts.length - 2]; 
 
-type FavoriteItem = IPeople | IFilm | IPlanet | ISpecie | IStarship | IVehicle;
+  if (resource === "people") return "person";
+  if (resource === "films") return "film";
+  if (resource === "species") return "specie";
+  return (resource.endsWith("s") ? resource.slice(0, -1) : resource) as ResourceType;
+};
 
 export const Favorites = () => {
   const { data: favorites, isLoading } = useFavoritesData();
-  
-  const [viewState, setViewState] = useState<{ id: string; type: string } | null>(null);
+  const [viewState, setViewState] = useState<{ id: string; type: ResourceType } | null>(null);
 
   const handleView = (url: string) => {
-    const parts = url.split("/");
-    const id = parts[parts.length - 1] || parts[parts.length - 2];
-    const type = parts[parts.length - 2] || parts[parts.length - 3];
+    const parts = url.split("/").filter(Boolean);
+    const id = parts[parts.length - 1];
+    const type = getTypeFromUrl(url);
     setViewState({ id, type });
   };
 
-  const handleClose = () => {
-    setViewState(null);
-  };
-
-  if (isLoading) return <Loading />;
+  const handleClose = () => setViewState(null);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-5xl font-bold text-yellow-400 mb-8 drop-shadow-md text-center">
-        My Favorites
-      </h1>
-
+    <ResourceLayout title="My Favorites" isLoading={isLoading} error={null}>
       {favorites.length === 0 ? (
         <Alert message="You haven't added any favorites yet. Go explore the galaxy!" type="info" />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {favorites.map((item: FavoriteItem) => {
+          {favorites.map((item) => {
             if (!item?.url) return null;
 
-            const parts = item.url.split("/");
-            const id = parts[parts.length - 1] || parts[parts.length - 2];
-            const type = parts[parts.length - 2] || parts[parts.length - 3];
+            const parts = item.url.split("/").filter(Boolean);
+            const id = parts[parts.length - 1];
+            const type = getTypeFromUrl(item.url);
             const title = "title" in item ? item.title : item.name;
+            const isFilm = type === "film";
 
             return (
               <Card
@@ -64,7 +59,11 @@ export const Favorites = () => {
                 url={item.url}
                 title={title}
                 type={type}
-                image={`https://placehold.co/400x400/000000/FFFFFF?text=${title}`}
+                image={
+                  isFilm
+                    ? POSTERS_BY_EPISODE[Number(id)]
+                    : placeholder(title)
+                }
                 onView={() => handleView(item.url)}
               >
                 <div className="badge badge-outline capitalize">{type}</div>
@@ -74,25 +73,25 @@ export const Favorites = () => {
         </div>
       )}
 
-      {viewState?.type === "people" && (
+      {viewState?.type === "person" && (
         <PeopleModal id={viewState.id} onClose={handleClose} />
       )}
-      {viewState?.type === "films" && (
+      {viewState?.type === "film" && (
         <FilmsModal id={viewState.id} onClose={handleClose} />
       )}
-      {viewState?.type === "planets" && (
+      {viewState?.type === "planet" && (
         <PlanetsModal id={viewState.id} onClose={handleClose} />
       )}
-      {viewState?.type === "species" && (
+      {viewState?.type === "specie" && (
         <SpeciesModal id={viewState.id} onClose={handleClose} />
       )}
-      {viewState?.type === "starships" && (
+      {viewState?.type === "starship" && (
         <StarshipsModal id={viewState.id} onClose={handleClose} />
       )}
-      {viewState?.type === "vehicles" && (
+      {viewState?.type === "vehicle" && (
         <VehiclesModal id={viewState.id} onClose={handleClose} />
       )}
-    </div>
+    </ResourceLayout>
   );
 };
 

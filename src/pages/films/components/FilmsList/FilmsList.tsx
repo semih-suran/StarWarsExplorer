@@ -21,7 +21,7 @@ export const FilmsList = ({ data, onView }: Props) => {
             id={item.url.split("/").filter(Boolean).pop()!}
             url={item.url}
             title={item.title}
-            type="films"
+            type="film"
             onView={onView}
             image={poster}
           >

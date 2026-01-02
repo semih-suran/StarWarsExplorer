@@ -1,6 +1,8 @@
 export type { IPeople, IPlanet, IStarship, IVehicle, ISpecie } from "swapi-ts";
 export type { Film as IFilm } from "./film";
 
+export type ResourceType = "planet" | "starship" | "person" | "film" | "vehicle" | "specie";
+
 export type SWAPIList<T> = {
   count: number;
   next: string | null;

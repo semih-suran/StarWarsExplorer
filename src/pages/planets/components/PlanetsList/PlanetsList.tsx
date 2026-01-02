@@ -15,7 +15,7 @@ export const PlanetsList = ({ data, onView }: Props) => {
           id={item.url.split("/").filter(Boolean).pop()!}
           url={item.url}
           title={item.name}
-          type="planets"
+          type="planet"
           onView={onView}
           image={`https://placehold.co/400x400/000000/FFFFFF?text=${item.name}`}
         >
