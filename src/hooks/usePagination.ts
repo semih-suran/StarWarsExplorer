@@ -1,33 +1,51 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 
-export const usePagination = <T>(data: T[], pageSize = 10) => {
-  const [page, setPage] = useState(1);
+type UsePaginationProps = {
+  totalItems: number;
+  itemsPerPage?: number;
+  initialPage?: number;
+};
 
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(data.length / pageSize));
-  }, [data.length, pageSize]);
+export const usePagination = ({
+  totalItems,
+  itemsPerPage = 10,
+  initialPage = 1,
+}: UsePaginationProps) => {
+  const [page, setPage] = useState(initialPage);
 
-  const paginated = useMemo(() => {
-    const safePage = Math.min(page, totalPages);
-    const start = (safePage - 1) * pageSize;
-    return data.slice(start, start + pageSize);
-  }, [data, page, pageSize, totalPages]);
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(totalItems / itemsPerPage)),
+    [totalItems, itemsPerPage]
+  );
 
-  const next = () => setPage((p) => Math.min(p + 1, totalPages));
-  const prev = () => setPage((p) => Math.max(p - 1, 1));
-  const goTo = (p: number) => {
-    const target = Math.max(1, Math.min(p, totalPages));
-    setPage(target);
-  };
+  const safePage = Math.min(page, totalPages);
+
+  const nextPage = useCallback(() => {
+    setPage((p) => Math.min(p + 1, totalPages));
+  }, [totalPages]);
+
+  const prevPage = useCallback(() => {
+    setPage((p) => Math.max(p - 1, 1));
+  }, []);
+
+  const goToPage = useCallback(
+    (p: number) => {
+      const target = Math.max(1, Math.min(p, totalPages));
+      setPage(target);
+    },
+    [totalPages]
+  );
+
+  const startIndex = (safePage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
 
   return {
-    page,
-    pageSize,
+    page: safePage,
+    setPage: goToPage,
+    nextPage,
+    prevPage,
     totalPages,
-    paginated,
-    next,
-    prev,
-    goTo,
-    setPage,
+    startIndex,
+    endIndex,
   };
 };

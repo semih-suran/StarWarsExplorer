@@ -1,91 +1,71 @@
-import { useSearchParams } from "react-router-dom";
-import { useCallback, useMemo } from "react";
+import { useMemo, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { usePagination } from "./usePagination";
 import { useUrlFilters } from "./useUrlFilters";
-import { useGetResource } from "./useGetResource";
-import type { SWAPIList } from "@/types";
 
-interface UseResourceLogicParams<T, F> {
+type SWAPIList<T> = {
+  results: T[];
+  count: number;
+};
+
+type UseResourceLogicProps<T, F> = {
   resourceName: string;
-  fetcher: (page: number, search: string) => Promise<SWAPIList<T>>;
+  fetcher: () => Promise<SWAPIList<T> | T[]>; 
   initialFilters: F;
-  searchParamName: keyof F;
+  searchParamName?: string;
   predicate: (item: T, filters: F) => boolean;
-  pageSize?: number;
-}
+  itemsPerPage?: number;
+};
 
-export function useResourceLogic<T, F extends Record<string, string>>({
+export const useResourceLogic = <T extends { url: string }, F extends Record<string, unknown>>({
   resourceName,
   fetcher,
   initialFilters,
-  searchParamName,
   predicate,
-  pageSize = 10,
-}: UseResourceLogicParams<T, F>) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { filters } = useUrlFilters(initialFilters);
+  itemsPerPage = 10,
+}: UseResourceLogicProps<T, F>) => {
+  
+  const { data: rawData, isLoading, error } = useQuery({
+    queryKey: [resourceName, "all"], 
+    queryFn: fetcher,
+    staleTime: 1000 * 60 * 5,
+  });
 
-  const pageParam = searchParams.get("page");
-  const page = pageParam ? Math.max(1, parseInt(pageParam, 10) || 1) : 1;
-  const searchTerm = filters[searchParamName] || "";
-  const { data, isLoading, error } = useGetResource(
-    resourceName,
-    fetcher,
-    page,
-    searchTerm
+  const allData = useMemo(() => {
+    if (!rawData) return [];
+    if (Array.isArray(rawData)) return rawData;
+    return (rawData as SWAPIList<T>).results || [];
+  }, [rawData]);
+
+  const { filters, setFilters: setUrlFilters, resetFilters: resetUrlFilters } = useUrlFilters(
+    initialFilters
   );
 
-  const allData = useMemo(() => data?.results || [], [data]);
-
-  const filteredResults = useMemo(() => {
+  const filteredData = useMemo(() => {
     return allData.filter((item) => predicate(item, filters));
   }, [allData, filters, predicate]);
 
-  const totalCount = filteredResults.length;
-  const totalPages = Math.ceil(totalCount / pageSize) || 1;
+  const pagination = usePagination({
+    totalItems: filteredData.length,
+    itemsPerPage,
+  });
+
+  const handleSetFilters = useCallback(
+    (newFilters: Partial<F>) => {
+      setUrlFilters(newFilters);
+      pagination.setPage(1); 
+    },
+    [setUrlFilters, pagination]
+  );
+
+  const handleResetFilters = useCallback(() => {
+    resetUrlFilters();
+    pagination.setPage(1);
+  }, [resetUrlFilters, pagination]);
 
   const paginatedData = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filteredResults.slice(start, start + pageSize);
-  }, [filteredResults, page, pageSize]);
-  
-  const setFilters = useCallback(
-    (newFilters: Partial<F>) => {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          
-          Object.entries(newFilters).forEach(([key, val]) => {
-            if (val) next.set(key, val as string);
-            else next.delete(key);
-          });
-
-          next.set("page", "1");
-          return next;
-        },
-        { replace: true }
-      );
-    },
-    [setSearchParams]
-  );
-
-  const resetFilters = useCallback(() => {
-    setSearchParams(new URLSearchParams(), { replace: true });
-  }, [setSearchParams]);
-
-  const goToPage = useCallback(
-    (p: number) => {
-      const target = Math.max(1, Math.min(p, totalPages));
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          next.set("page", String(target));
-          return next;
-        },
-        { replace: false }
-      );
-    },
-    [setSearchParams, totalPages]
-  );
+    return filteredData.slice(pagination.startIndex, pagination.endIndex);
+  }, [filteredData, pagination.startIndex, pagination.endIndex]);
 
   return {
     data: paginatedData,
@@ -93,14 +73,8 @@ export function useResourceLogic<T, F extends Record<string, string>>({
     isLoading,
     error,
     filters,
-    setFilters,
-    resetFilters,
-    pagination: {
-      page,
-      totalPages,
-      goToPage,
-      nextPage: () => goToPage(page + 1),
-      prevPage: () => goToPage(page - 1),
-    },
+    setFilters: handleSetFilters,
+    resetFilters: handleResetFilters,
+    pagination,
   };
-}
+};

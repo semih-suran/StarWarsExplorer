@@ -20,8 +20,8 @@ export const SpeciesList = ({ data, onView }: Props) => {
           image={`https://placehold.co/400x400/000000/FFFFFF?text=${item.name}`}
         >
           <div className="flex flex-wrap justify-center gap-2 mt-2 w-full">
-            <div className="badge badge-outline">{item.classification}</div>
-            <div className="badge badge-outline">{item.language}</div>
+            <div className="badge badge-outline">Class: {item.classification}</div>
+            <div className="badge badge-outline">Language: {item.language}</div>
           </div>
         </Card>
       ))}

@@ -21,6 +21,8 @@ const INITIAL_FILTERS: VehiclesFormData = { name: "", vehicle_class: "" };
 export const Vehicles = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const fetchAllVehicles = async () => getVehicles(1, "");
+
   const { 
     data, 
     allData,
@@ -32,7 +34,7 @@ export const Vehicles = () => {
     pagination 
   } = useResourceLogic({
     resourceName: "vehicles",
-    fetcher: getVehicles,
+    fetcher: fetchAllVehicles,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
     predicate: vehiclesPredicate,
@@ -44,7 +46,7 @@ export const Vehicles = () => {
         <VehiclesFilterForm
           onSubmit={setFilters}
           onReset={resetFilters}
-          defaultValues={filters}
+          defaultValues={filters as VehiclesFormData}
           resourceList={allData}
         />
       </div>

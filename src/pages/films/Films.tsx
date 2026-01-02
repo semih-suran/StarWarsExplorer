@@ -24,6 +24,8 @@ const INITIAL_FILTERS: FilmsFormData = { name: "", director: "" };
 export const Films = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const fetchAllFilms = async () => getFilms(1, "");
+
   const {
     data,
     allData,
@@ -35,7 +37,7 @@ export const Films = () => {
     pagination,
   } = useResourceLogic({
     resourceName: "films",
-    fetcher: getFilms,
+    fetcher: fetchAllFilms,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
     predicate: filmsPredicate,
@@ -69,7 +71,7 @@ export const Films = () => {
         <FilmsFilterForm
           onSubmit={setFilters}
           onReset={resetFilters}
-          defaultValues={filters}
+          defaultValues={filters as FilmsFormData}
           resourceList={allData}
         />
       </div>

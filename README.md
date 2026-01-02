@@ -87,14 +87,14 @@ src/
 
 ### 1. The "Adapter" Pattern with Runtime Validation
 
-**Decision:** The application uses `swapi.info` wrapped in a Zod-validated Adapter Layer.
+**Decision:** The application uses `swapi.info` wrapped in a Zod-validated Adapter Layer with strict Generics.
 
-**Why:** TypeScript interfaces disappear at runtime. If the API changes its data shape, a standard React app would crash silently.
+**Why:** TypeScript interfaces disappear at runtime. We need to guarantee that the data flowing into our hooks matches our types exactly.
 
 **Implementation:** 
 - `schemas.ts`: Defines strict contracts for every entity.
-- `api.ts`: Validates incoming data, ensuring the app "Fails Fast" at the network layer.
-- **Impact:** The app "Fails Fast" at the network layer with clear error messages, ensuring no corrupt data ever reaches the components.
+- `api.ts`: Validates incoming data using Zod.
+- **Hooks:** Custom hooks like `useUrlFilters` use Typescript Generics (`<T>`) to ensure that URL parameters are strictly typed to the specific resource being viewed.
 
 
 ### 2. Single Source of Truth (SSOT)
@@ -129,13 +129,13 @@ src/
 5. Verifies the Production Build.
 
 
-### 4. Explicit State Orchestration
+### 4. Concurrent-Safe State Orchestration
 
-**Decision:** Decoupled Pagination state from Auto-Correction magic.
+**Decision:** Decoupled Pagination state from Reactive effects, enforcing "Event-Driven" updates.
 
-**Why:** Relying on `useEffect` or render-phase updates to "fix" pagination (e.g., when filtering) often leads to race conditions and infinite loops.
+**Why:** Using `useEffect` or "Render-Phase Updates" to sync state (e.g., *if filters change, reset page*) causes tearing and infinite loops in React 19's Concurrent Rendering engine.
 
-**Implementation:** The `useResourceLogic` hook explicitly orchestrates state changes. When filters are updated, it imperatively resets the pagination to Page 1.
+**Implementation:** The `usePagination` hook is "dumb" (pure state). The `useResourceLogic` hook acts as the orchestrator: when a user submits the Filter Form, it **imperatively** resets the pagination to Page 1 in the same event handler, ensuring a single, clean render cycle.
 
 ### 5. Composition over Configuration
 
