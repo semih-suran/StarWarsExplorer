@@ -151,3 +151,14 @@ src/
 **Decision:** Route-based code splitting with Hover Preloading.
 
 **Optimization:** The application uses `React.lazy` to split bundles. To prevent "Loading..." waterfalls, I implemented a prefetching strategy where the next route's chunk begins downloading the moment a user hovers over a navigation card.
+
+### 7. Extensibility & Cross-Cutting Concerns
+
+**Decision:** Implemented a Global "Comparison" Feature using a decoupled Store + Layout injection.
+
+**Why:** To verify that the architecture can support features that persist across different routes (e.g., selecting a Planet, then navigating to Starships to select a vehicle) without rewriting individual page logic.
+
+**Implementation:** 
+- **State:** A `useSelectionStore` (Zustand) persists selections globally.
+- **UI Injection:** The "Comparison Bar" is injected directly into `ResourceLayout`.
+- **Result:** Every page (Planets, People, etc.) automatically gains "Compare" functionality without a single line of code change in the domain views, proving the architecture's extensibility.
