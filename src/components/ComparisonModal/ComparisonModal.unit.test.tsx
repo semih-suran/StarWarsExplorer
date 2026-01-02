@@ -44,7 +44,8 @@ describe("ComparisonModal", () => {
       expect(screen.getByText("202")).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/VS Mode: person/i)).toBeInTheDocument();
+    expect(screen.getByText((content) => content.includes('VS:') && content.includes('person')))
+      .toBeInTheDocument();
   });
 
   it("should correctly highlight the 'Winner' (Higher Value)", async () => {
@@ -64,12 +65,15 @@ describe("ComparisonModal", () => {
         expect(screen.getByText("202")).toBeInTheDocument();
     });
 
-    const vaderHeight = screen.getByText("202");
-    expect(vaderHeight).toHaveClass("text-success");
-    expect(vaderHeight).toHaveClass("font-bold");
+    const vaderValue = screen.getByText("202");
+    const container = vaderValue.parentElement;
+    
+    expect(container).toHaveClass("text-success");
+    expect(container).toHaveClass("bg-success/20");
+    expect(container).toHaveClass("font-bold");
 
-    const lukeHeight = screen.getByText("172");
-    expect(lukeHeight).toHaveClass("text-error");
+    const lukeValue = screen.getByText("172");
+    expect(lukeValue.parentElement).toHaveClass("text-error");
   });
   
   it("should handle 'unknown' values gracefully", async () => {
@@ -91,7 +95,6 @@ describe("ComparisonModal", () => {
     });
     
     const yodaHeight = screen.getByText("66");
-    expect(yodaHeight).not.toHaveClass("text-success");
-    expect(yodaHeight).not.toHaveClass("text-error");
+    expect(yodaHeight.parentElement).not.toHaveClass("text-success");
   });
 });

@@ -158,4 +158,5 @@ src/
 
 - **State:** A `useSelectionStore` (Zustand) persists selections globally with "Context Locking" (automatically clearing selections when switching resource types) and FIFO logic.
 - **UI Injection:** The "Comparison Bar" is injected directly into `ResourceLayout`.
+- **Responsive UX:** Implemented a "Head-to-Head" mobile pattern in the Comparison Modal, utilizing CSS Grid to pivot from tabular data to stacked vertical cards, ensuring long resource names (e.g., Starships) remain legible without breaking layout integrity.
 - **Result:** Every page (Planets, People, etc.) automatically gains "Compare" functionality without a single line of code change in the domain views, proving the architecture's extensibility.
