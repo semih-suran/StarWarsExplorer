@@ -2,6 +2,7 @@ import { useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePagination } from "./usePagination";
 import { useUrlFilters } from "./useUrlFilters";
+import { API_CONFIG } from "@/api/api";
 
 type SWAPIList<T> = {
   results: T[];
@@ -15,6 +16,7 @@ type UseResourceLogicProps<T, F> = {
   searchParamName?: string;
   predicate: (item: T, filters: F) => boolean;
   itemsPerPage?: number;
+  queryKey?: readonly unknown[];
 };
 
 export const useResourceLogic = <T extends { url: string }, F extends Record<string, unknown>>({
@@ -23,12 +25,13 @@ export const useResourceLogic = <T extends { url: string }, F extends Record<str
   initialFilters,
   predicate,
   itemsPerPage = 10,
+  queryKey,
 }: UseResourceLogicProps<T, F>) => {
   
   const { data: rawData, isLoading, error } = useQuery({
-    queryKey: [resourceName, "all"], 
+    queryKey: queryKey || [resourceName, "all"], 
     queryFn: fetcher,
-    staleTime: 1000 * 60 * 5,
+    staleTime: API_CONFIG.staleTime,
   });
 
   const allData = useMemo(() => {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "@/api/api";
+import { queryKeys } from "@/api/queryKeys";
 import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
@@ -35,6 +36,7 @@ export const Starships = () => {
   } = useResourceLogic({
     resourceName: "starships",
     fetcher: fetchAllStarships,
+    queryKey: queryKeys.starships.all,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
     predicate: starshipsPredicate,

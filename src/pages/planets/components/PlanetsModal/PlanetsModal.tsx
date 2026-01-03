@@ -1,26 +1,8 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useQuery, type UseQueryResult, useQueryClient } from '@tanstack/react-query';
 import { api, API_CONFIG } from '@/api/api';
+import { queryKeys } from "@/api/queryKeys";
 import { placeholder } from '@/utilities/placeholder';
-
-type PlanetDetail = {
-  name: string;
-  rotation_period: string;
-  orbital_period: string;
-  diameter: string;
-  climate: string;
-  gravity: string;
-  terrain: string;
-  surface_water: string;
-  population: string;
-  residents: string[];
-  films: string[];
-  url: string;
-};
-
-const fetchPlanet = async (id: string) => {
-  const { data } = await api.get<PlanetDetail>(`/planets/${id}/`);
-  return data;
-};
+import type { IPlanet, SWAPIList } from "@/types";
 
 type Props = {
   id?: string | null;
@@ -28,12 +10,29 @@ type Props = {
 };
 
 export const PlanetsModal = ({ id, onClose }: Props) => {
-  const { data, isLoading, isError }: UseQueryResult<PlanetDetail, Error> =
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, isError }: UseQueryResult<IPlanet, Error> =
     useQuery({
-      queryKey: ['planet', id],
-      queryFn: () => fetchPlanet(id!),
+      queryKey: queryKeys.planets.detail(id!),
+      queryFn: () => api.planets.get(id!),
       enabled: Boolean(id),
       staleTime: API_CONFIG.staleTime,
+      placeholderData: () => {
+        if (!id) return undefined;
+        const listData = queryClient.getQueryData<SWAPIList<IPlanet> | IPlanet[]>(
+          queryKeys.planets.all
+        );
+        
+        let items: IPlanet[] = [];
+        if (Array.isArray(listData)) {
+          items = listData;
+        } else if (listData) {
+          items = listData.results;
+        }
+        
+        return items.find((p) => p.url.includes(`/${id}/`));
+      }
     });
 
   if (!id) return null;

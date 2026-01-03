@@ -1,12 +1,8 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult, useQueryClient } from "@tanstack/react-query";
 import { api, API_CONFIG } from "@/api/api";
+import { queryKeys } from "@/api/queryKeys";
 import { placeholder } from "@/utilities/placeholder";
-import type { ISpecie } from "@/types";
-
-const fetchSpecies = async (id: string) => {
-  const { data } = await api.get<ISpecie>(`/species/${id}/`);
-  return data;
-};
+import type { ISpecie, SWAPIList } from "@/types";
 
 type Props = {
   id?: string | null;
@@ -17,11 +13,28 @@ const isPlanetObject = (v: unknown): v is { name?: string } =>
   typeof v === "object" && v !== null && "name" in v;
 
 export const SpeciesModal = ({ id, onClose }: Props) => {
+  const queryClient = useQueryClient();
+
   const { data, isLoading, isError }: UseQueryResult<ISpecie, Error> = useQuery({
-    queryKey: ["species", id],
-    queryFn: () => fetchSpecies(id!),
+    queryKey: queryKeys.species.detail(id!),
+    queryFn: () => api.species.get(id!),
     enabled: Boolean(id),
     staleTime: API_CONFIG.staleTime,
+    placeholderData: () => {
+        if (!id) return undefined;
+        const listData = queryClient.getQueryData<SWAPIList<ISpecie> | ISpecie[]>(
+          queryKeys.species.all
+        );
+        
+        let items: ISpecie[] = [];
+        if (Array.isArray(listData)) {
+          items = listData;
+        } else if (listData) {
+          items = listData.results;
+        }
+        
+        return items.find((p) => p.url.includes(`/${id}/`));
+    }
   });
 
   if (!id) return null;

@@ -53,31 +53,46 @@ const fetchResource = async <T>(
   };
 };
 
+const fetchSingle = async <T>(
+  endpoint: string,
+  id: string,
+  schema: ZodSchema<T>
+): Promise<T> => {
+  const { data } = await axiosInstance.get<T>(`${endpoint}/${id}`);
+  return schema.parse(data);
+};
+
 export const api = {
   get: axiosInstance.get,
   
   people: {
     list: (page = 1, search = "") =>
       fetchResource<IPeople>("/people", PeopleSchema, page, search),
+    get: (id: string) => fetchSingle<IPeople>("/people", id, PeopleSchema),
   },
   planets: {
     list: (page = 1, search = "") =>
       fetchResource<IPlanet>("/planets", PlanetSchema, page, search),
+    get: (id: string) => fetchSingle<IPlanet>("/planets", id, PlanetSchema),
   },
   films: {
     list: (page = 1, search = "") =>
       fetchResource<IFilm>("/films", FilmSchema, page, search),
+    get: (id: string) => fetchSingle<IFilm>("/films", id, FilmSchema),
   },
   species: {
     list: (page = 1, search = "") =>
       fetchResource<ISpecie>("/species", SpeciesSchema, page, search),
+    get: (id: string) => fetchSingle<ISpecie>("/species", id, SpeciesSchema),
   },
   vehicles: {
     list: (page = 1, search = "") =>
       fetchResource<IVehicle>("/vehicles", VehicleSchema, page, search),
+    get: (id: string) => fetchSingle<IVehicle>("/vehicles", id, VehicleSchema),
   },
   starships: {
     list: (page = 1, search = "") =>
       fetchResource<IStarship>("/starships", StarshipSchema, page, search),
+    get: (id: string) => fetchSingle<IStarship>("/starships", id, StarshipSchema),
   },
 };

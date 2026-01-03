@@ -1,27 +1,8 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult, useQueryClient } from "@tanstack/react-query";
 import { api, API_CONFIG } from "@/api/api";
+import { queryKeys } from "@/api/queryKeys";
 import { POSTERS_BY_EPISODE } from "../FilmsPosterMap";
-
-type FilmDetail = {
-  title: string;
-  episode_id: number;
-  opening_crawl: string;
-  director: string;
-  producer: string;
-  release_date: string;
-  url: string;
-  characters?: string[];
-  planets?: string[];
-  starships?: string[];
-  vehicles?: string[];
-  species?: string[];
-  films?: string[];
-};
-
-const fetchFilm = async (id: string) => {
-  const { data } = await api.get<FilmDetail>(`/films/${id}/`);
-  return data;
-};
+import type { IFilm, SWAPIList } from "@/types";
 
 type Props = {
   id?: string | null;
@@ -29,12 +10,30 @@ type Props = {
 };
 
 export const FilmsModal = ({ id, onClose }: Props) => {
-  const { data, isLoading, isError }: UseQueryResult<FilmDetail, Error> =
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, isError }: UseQueryResult<IFilm, Error> =
     useQuery({
-      queryKey: ["film", id],
-      queryFn: () => fetchFilm(id!),
+      queryKey: queryKeys.films.detail(id!),
+      queryFn: () => api.films.get(id!),
       enabled: Boolean(id),
       staleTime: API_CONFIG.staleTime,
+      placeholderData: () => {
+        if (!id) return undefined;
+        const listCache = queryClient.getQueriesData<SWAPIList<IFilm>>({
+           queryKey: queryKeys.films.all 
+        });
+        
+        for (const [, cache] of listCache) {
+           const found = cache?.results.find((f) => {
+              const urlParts = f.url.split("/").filter(Boolean);
+              const filmId = urlParts[urlParts.length - 1];
+              return filmId === id;
+           });
+           if (found) return found;
+        }
+        return undefined;
+      }
     });
 
   if (!id) return null;
