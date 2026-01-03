@@ -1,18 +1,18 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@/test/test-utils";
 import { People } from "./People";
-import * as apiModule from "@/api/api";
+import { api } from "@/api/api";
 import type { IPeople } from "@/types";
 
 const MOCK_PEOPLE = [
-  { name: "Luke Skywalker", gender: "male", url: "https://swapi.info/api/people/1" },
-  { name: "Leia Organa", gender: "female", url: "https://swapi.info/api/people/5" },
-  { name: "R2-D2", gender: "n/a", url: "https://swapi.info/api/people/3" },
+  { name: "Luke Skywalker", gender: "male", url: "https://swapi.info/api/people/1", created: "", edited: "" },
+  { name: "Leia Organa", gender: "female", url: "https://swapi.info/api/people/5", created: "", edited: "" },
+  { name: "R2-D2", gender: "n/a", url: "https://swapi.info/api/people/3", created: "", edited: "" },
 ];
 
 describe("People Page - Integration", () => {
   it("loads people and allows filtering by name", async () => {
-    vi.spyOn(apiModule, "getPeople").mockResolvedValue({
+    vi.spyOn(api.people, "list").mockResolvedValue({
       count: 3,
       next: null,
       previous: null,

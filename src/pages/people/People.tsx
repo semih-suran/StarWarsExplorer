@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getPeople } from "@/api/api";
+import { api } from "@/api/api";
 import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
@@ -21,7 +21,7 @@ const INITIAL_FILTERS: PeopleFormData = { name: "", gender: "" };
 export const People = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const fetchAllPeople = async () => getPeople(1, "");
+  const fetchAllPeople = async () => api.people.list(1, "");
 
   const { 
     data, 

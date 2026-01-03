@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getStarships } from "@/api/api";
+import { api } from "@/api/api";
 import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
@@ -21,7 +21,7 @@ const INITIAL_FILTERS: StarshipsFormData = { name: "", starship_class: "" };
 export const Starships = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const fetchAllStarships = async () => getStarships(1, "");
+  const fetchAllStarships = async () => api.starships.list(1, "");
 
   const { 
     data, 

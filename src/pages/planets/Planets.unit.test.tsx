@@ -14,8 +14,8 @@ const createPlanet = (name: string, terrain: string): IPlanet => ({
   population: "100000",
   residents: [],
   films: [],
-  created: new Date(),
-  edited: new Date(),
+  created: new Date().toISOString(),
+  edited: new Date().toISOString(),
   url: "",
 });
 
