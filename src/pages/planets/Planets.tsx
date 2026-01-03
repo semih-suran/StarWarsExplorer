@@ -1,4 +1,4 @@
-import { getPlanets } from "@/api/api";
+import { api } from "@/api/api";
 import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
@@ -14,7 +14,7 @@ const INITIAL_FILTERS: PlanetsFormData = { name: "", terrain: "" };
 export const Planets = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const fetchAllPlanets = async () => getPlanets(1, "");
+  const fetchAllPlanets = async () => api.planets.list(1, "");
 
   const { 
     data, 

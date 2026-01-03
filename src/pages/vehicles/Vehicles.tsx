@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getVehicles } from "@/api/api";
+import { api } from "@/api/api";
 import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
@@ -21,7 +21,7 @@ const INITIAL_FILTERS: VehiclesFormData = { name: "", vehicle_class: "" };
 export const Vehicles = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const fetchAllVehicles = async () => getVehicles(1, "");
+  const fetchAllVehicles = async () => api.vehicles.list(1, "");
 
   const { 
     data, 

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { type ZodType } from "zod";
+import { type ZodSchema } from "zod";
 import type {
   SWAPIList,
   IPeople,
@@ -21,68 +21,63 @@ import {
 
 export const API_CONFIG = {
   baseURL: "https://swapi.info/api",
-  timeout: 10000,
-  staleTime: 1000 * 60 * 5,
+  staleTime: 1000 * 60 * 10,
 };
 
-export const api = axios.create({
+const axiosInstance = axios.create({
   baseURL: API_CONFIG.baseURL,
-  timeout: API_CONFIG.timeout,
 });
 
-type Searchable = {
-  name?: string;
-  title?: string;
-};
-
 const fetchResource = async <T>(
-  url: string,
-  schema: ZodType<T>,
-  _page: number,
-  search: string
+  endpoint: string,
+  schema: ZodSchema<T>,
+  page: number = 1,
+  search?: string
 ): Promise<SWAPIList<T>> => {
-  const { data } = await api.get(url);
+  const params = new URLSearchParams();
+  if (page > 1) params.append("page", page.toString());
+  if (search) params.append("search", search);
 
-  const parsedData = schema.array().parse(data);
+  const { data } = await axiosInstance.get<SWAPIList<T> | T[]>(endpoint, { params });
 
-  let results = parsedData;
+  const rawResults = Array.isArray(data) ? data : data.results;
+  const count = Array.isArray(data) ? data.length : data.count;
 
-  if (search) {
-    const lowerSearch = search.toLowerCase();
-    results = results.filter((item) => {
-      const candidate = item as unknown as Searchable;
-      const name = candidate.name || candidate.title || "";
-      return name.toLowerCase().includes(lowerSearch);
-    });
-  }
+  const safeResults = rawResults.map((item) => schema.parse(item));
 
-  return {
-    count: results.length,
-    next: null,
-    previous: null,
-    results: results, 
+  return { 
+    count, 
+    next: Array.isArray(data) ? null : data.next, 
+    previous: Array.isArray(data) ? null : data.previous, 
+    results: safeResults 
   };
 };
 
-export const fetchAllPages = async <T>(endpoint: string): Promise<T[]> => {
-  const { data } = await api.get<T[]>(`/${endpoint}`);
-  return data;
+export const api = {
+  get: axiosInstance.get,
+  
+  people: {
+    list: (page = 1, search = "") =>
+      fetchResource<IPeople>("/people", PeopleSchema, page, search),
+  },
+  planets: {
+    list: (page = 1, search = "") =>
+      fetchResource<IPlanet>("/planets", PlanetSchema, page, search),
+  },
+  films: {
+    list: (page = 1, search = "") =>
+      fetchResource<IFilm>("/films", FilmSchema, page, search),
+  },
+  species: {
+    list: (page = 1, search = "") =>
+      fetchResource<ISpecie>("/species", SpeciesSchema, page, search),
+  },
+  vehicles: {
+    list: (page = 1, search = "") =>
+      fetchResource<IVehicle>("/vehicles", VehicleSchema, page, search),
+  },
+  starships: {
+    list: (page = 1, search = "") =>
+      fetchResource<IStarship>("/starships", StarshipSchema, page, search),
+  },
 };
-
-export const getPeople = (page: number, search: string) =>
-  fetchResource<IPeople>("/people", PeopleSchema as unknown as ZodType<IPeople>, page, search);
-
-export const getPlanets = (page: number, search: string) =>
-  fetchResource<IPlanet>("/planets", PlanetSchema as unknown as ZodType<IPlanet>, page, search);
-
-export const getFilms = (page: number, search: string) =>
-  fetchResource<IFilm>("/films", FilmSchema as unknown as ZodType<IFilm>, page, search);
-
-export const getSpecies = (page: number, search: string) =>
-  fetchResource<ISpecie>("/species", SpeciesSchema as unknown as ZodType<ISpecie>, page, search);
-
-export const getVehicles = (page: number, search: string) =>
-  fetchResource<IVehicle>("/vehicles", VehicleSchema as unknown as ZodType<IVehicle>, page, search);
-
-export const getStarships = (page: number, search: string) =>
-  fetchResource<IStarship>("/starships", StarshipSchema as unknown as ZodType<IStarship>, page, search);

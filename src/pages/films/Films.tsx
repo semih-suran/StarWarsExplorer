@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getFilms, API_CONFIG } from "@/api/api";
+import { api, API_CONFIG } from "@/api/api";
 import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
@@ -24,7 +24,7 @@ const INITIAL_FILTERS: FilmsFormData = { name: "", director: "" };
 export const Films = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const fetchAllFilms = async () => getFilms(1, "");
+  const fetchAllFilms = async () => api.films.list(1, "");
 
   const {
     data,
@@ -45,7 +45,7 @@ export const Films = () => {
 
   const { data: carouselData } = useQuery({
     queryKey: ["films", 1, ""],
-    queryFn: () => getFilms(1, ""),
+    queryFn: () => api.films.list(1, ""),
     staleTime: API_CONFIG.staleTime,
   });
 

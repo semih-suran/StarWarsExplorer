@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getSpecies } from "@/api/api";
+import { api } from "@/api/api";
 import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
@@ -21,7 +21,7 @@ const INITIAL_FILTERS: SpeciesFormData = { name: "", classification: "" };
 export const Species = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const fetchAllSpecies = async () => getSpecies(1, "");
+  const fetchAllSpecies = async () => api.species.list(1, "");
 
   const { 
     data, 
