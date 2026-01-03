@@ -14,11 +14,11 @@ interface CardProps {
 }
 
 export const Card = ({ id, url, title, image, children, onView, type }: CardProps) => {
-  const { toggleFavorite, isFavorite } = useFavoritesStore();
-  const liked = isFavorite(url);
+  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite);
+  const isFavorite = useFavoritesStore((s) => s.isFavorite(url));
 
-  const { selectedItems, toggleSelection } = useSelectionStore();
-  const isSelected = selectedItems.some((i) => i.id === id);
+  const toggleSelection = useSelectionStore((s) => s.toggleSelection);
+  const isSelected = useSelectionStore((s) => s.selectedItems.some((i) => i.id === id));
 
   const handleFavoriteToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -38,7 +38,7 @@ export const Card = ({ id, url, title, image, children, onView, type }: CardProp
   return (
     <div 
       className={cn(
-        "card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border border-yellow-400 relative",
+        "card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border border-yellow-400 relative h-full flex flex-col",
         isSelected && "ring-4 ring-warning scale-[1.02] z-10"
       )}
     >
@@ -53,7 +53,7 @@ export const Card = ({ id, url, title, image, children, onView, type }: CardProp
       </div>
 
       {image && (
-        <figure className="px-10 pt-10">
+        <figure className="px-10 pt-10 shrink-0">
           <img 
             src={image} 
             alt={title} 
@@ -62,20 +62,26 @@ export const Card = ({ id, url, title, image, children, onView, type }: CardProp
         </figure>
       )}
       
-      <div className="card-body items-center text-center">
-        <h2 className="card-title text-yellow-400 font-bold text-2xl">{title}</h2>
+      <div className="card-body items-center text-center grow">
+        <h2 
+          className="card-title text-yellow-400 font-bold text-2xl w-full block truncate text-center" 
+          title={title}
+        >
+          {title}
+        </h2>
+        
         <div className="text-sm opacity-70 mb-4">{children}</div>
         
-        <div className="card-actions justify-end w-full gap-2 items-center">
+        <div className="card-actions justify-end w-full gap-2 items-center mt-auto">
            <button
             onClick={handleFavoriteToggle}
             className={cn(
               "btn btn-circle btn-ghost btn-sm transition-colors",
-              liked ? "text-red-500" : "text-gray-400 hover:text-red-300"
+              isFavorite ? "text-red-500" : "text-gray-400 hover:text-red-300"
             )}
-            aria-label={liked ? "Remove from favorites" : "Add to favorites"}
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={liked ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={isFavorite ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </button>

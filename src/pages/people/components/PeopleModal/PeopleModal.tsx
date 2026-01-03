@@ -1,28 +1,8 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { api } from "@/api/api";
+import { useQuery, type UseQueryResult, useQueryClient } from "@tanstack/react-query";
+import { api, API_CONFIG } from "@/api/api";
+import { queryKeys } from "@/api/queryKeys";
 import { placeholder } from "@/utilities/placeholder";
-
-type PersonDetail = {
-  name: string;
-  height: string;
-  mass: string;
-  hair_color: string;
-  skin_color: string;
-  eye_color: string;
-  birth_year: string;
-  gender: string;
-  homeworld: string;
-  films: string[];
-  species: string[];
-  vehicles: string[];
-  starships: string[];
-  url: string;
-};
-
-const fetchPerson = async (id: string) => {
-  const { data } = await api.get<PersonDetail>(`/people/${id}/`);
-  return data;
-};
+import type { IPeople, SWAPIList } from "@/types";
 
 type Props = {
   id?: string | null;
@@ -30,12 +10,29 @@ type Props = {
 };
 
 export const PeopleModal = ({ id, onClose }: Props) => {
-  const { data, isLoading, isError }: UseQueryResult<PersonDetail, Error> =
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, isError }: UseQueryResult<IPeople, Error> =
     useQuery({
-      queryKey: ["person", id],
-      queryFn: () => fetchPerson(id!),
+      queryKey: queryKeys.people.detail(id!),
+      queryFn: () => api.people.get(id!),
       enabled: Boolean(id),
-      staleTime: 1000 * 60,
+      staleTime: API_CONFIG.staleTime,
+      placeholderData: () => {
+        if (!id) return undefined;
+        const listData = queryClient.getQueryData<SWAPIList<IPeople> | IPeople[]>(
+          queryKeys.people.all
+        );
+        
+        let items: IPeople[] = [];
+        if (Array.isArray(listData)) {
+          items = listData;
+        } else if (listData) {
+          items = listData.results;
+        }
+
+        return items.find((p) => p.url.includes(`/${id}/`));
+      }
     });
 
   if (!id) return null;

@@ -1,4 +1,5 @@
 import { api } from "@/api/api";
+import { queryKeys } from "@/api/queryKeys";
 import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
@@ -28,6 +29,7 @@ export const Planets = () => {
   } = useResourceLogic({
     resourceName: "planets",
     fetcher: fetchAllPlanets,
+    queryKey: queryKeys.planets.all,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
     predicate: planetsPredicate,

@@ -1,12 +1,8 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult, useQueryClient } from "@tanstack/react-query";
 import { api, API_CONFIG } from "@/api/api";
+import { queryKeys } from "@/api/queryKeys";
 import { placeholder } from "@/utilities/placeholder";
-import type { IStarship } from "@/types";
-
-const fetchStarship = async (id: string) => {
-  const { data } = await api.get<IStarship>(`/starships/${id}/`);
-  return data;
-};
+import type { IStarship, SWAPIList } from "@/types";
 
 type Props = {
   id?: string | null;
@@ -14,11 +10,28 @@ type Props = {
 };
 
 export const StarshipsModal = ({ id, onClose }: Props) => {
+  const queryClient = useQueryClient();
+
   const { data, isLoading, isError }: UseQueryResult<IStarship, Error> = useQuery({
-    queryKey: ["starship", id],
-    queryFn: () => fetchStarship(id!),
+    queryKey: queryKeys.starships.detail(id!),
+    queryFn: () => api.starships.get(id!),
     enabled: Boolean(id),
     staleTime: API_CONFIG.staleTime,
+    placeholderData: () => {
+        if (!id) return undefined;
+        const listData = queryClient.getQueryData<SWAPIList<IStarship> | IStarship[]>(
+          queryKeys.starships.all
+        );
+        
+        let items: IStarship[] = [];
+        if (Array.isArray(listData)) {
+          items = listData;
+        } else if (listData) {
+          items = listData.results;
+        }
+        
+        return items.find((p) => p.url.includes(`/${id}/`));
+    }
   });
 
   if (!id) return null;

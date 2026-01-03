@@ -1,12 +1,8 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult, useQueryClient } from "@tanstack/react-query";
 import { api, API_CONFIG } from "@/api/api";
+import { queryKeys } from "@/api/queryKeys";
 import { placeholder } from "@/utilities/placeholder";
-import type { IVehicle } from "@/types";
-
-const fetchVehicle = async (id: string) => {
-  const { data } = await api.get<IVehicle>(`/vehicles/${id}/`);
-  return data;
-};
+import type { IVehicle, SWAPIList } from "@/types";
 
 type Props = {
   id?: string | null;
@@ -14,11 +10,28 @@ type Props = {
 };
 
 export const VehiclesModal = ({ id, onClose }: Props) => {
+  const queryClient = useQueryClient();
+
   const { data, isLoading, isError }: UseQueryResult<IVehicle, Error> = useQuery({
-    queryKey: ["vehicle", id],
-    queryFn: () => fetchVehicle(id!),
+    queryKey: queryKeys.vehicles.detail(id!),
+    queryFn: () => api.vehicles.get(id!),
     enabled: Boolean(id),
     staleTime: API_CONFIG.staleTime,
+    placeholderData: () => {
+        if (!id) return undefined;
+        const listData = queryClient.getQueryData<SWAPIList<IVehicle> | IVehicle[]>(
+          queryKeys.vehicles.all
+        );
+        
+        let items: IVehicle[] = [];
+        if (Array.isArray(listData)) {
+          items = listData;
+        } else if (listData) {
+          items = listData.results;
+        }
+        
+        return items.find((p) => p.url.includes(`/${id}/`));
+    }
   });
 
   if (!id) return null;

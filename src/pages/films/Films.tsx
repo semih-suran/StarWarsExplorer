@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api, API_CONFIG } from "@/api/api";
+import { queryKeys } from "@/api/queryKeys";
 import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
 import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
 import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
@@ -38,19 +39,28 @@ export const Films = () => {
   } = useResourceLogic({
     resourceName: "films",
     fetcher: fetchAllFilms,
+    queryKey: queryKeys.films.all,
     initialFilters: INITIAL_FILTERS,
     searchParamName: "name",
     predicate: filmsPredicate,
   });
 
   const { data: carouselData } = useQuery({
-    queryKey: ["films", 1, ""],
+    queryKey: queryKeys.films.all,
     queryFn: () => api.films.list(1, ""),
     staleTime: API_CONFIG.staleTime,
   });
 
   const carouselItems = useMemo(() => {
-    const source = carouselData?.results || [];
+    const sourceRaw = carouselData;
+    let source: IFilm[] = [];
+    
+    if (Array.isArray(sourceRaw)) {
+        source = sourceRaw;
+    } else if (sourceRaw && 'results' in sourceRaw) {
+        source = sourceRaw.results;
+    }
+
     const sorted = [...source].sort((a, b) => a.episode_id - b.episode_id);
     return sorted.map((film) => ({
       img: POSTERS_BY_EPISODE[film.episode_id] ?? "",
