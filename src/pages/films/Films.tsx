@@ -1,18 +1,12 @@
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { api, API_CONFIG } from "@/api/api";
+import { api } from "@/api/api";
 import { queryKeys } from "@/api/queryKeys";
-import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
-import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
-import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
+import { matchesSearch } from "@/utilities/filter-utils";
+import type { IFilm } from "@/types";
+import { GenericResourcePage } from "@/components/GenericResourcePage/GenericResourcePage";
+
 import { FilmsList } from "./components/FilmsList/FilmsList";
 import { FilmsFilterForm, type FilmsFormData } from "./components/FilmsFilterForm/FilmsFilterForm";
 import { FilmsModal } from "./components/FilmsModal/FilmsModal";
-import { matchesSearch } from "@/utilities/filter-utils";
-import type { IFilm } from "@/types";
-import { useResourceLogic } from "@/hooks/useResourceLogic";
-import HeroCarousel from "./components/HeroCarousel/HeroCarousel";
-import { POSTERS_BY_EPISODE } from "./components/FilmsPosterMap";
 
 const filmsPredicate = (film: IFilm, filters: FilmsFormData) => {
   const titleMatch = matchesSearch(film.title, filters.name);
@@ -23,89 +17,19 @@ const filmsPredicate = (film: IFilm, filters: FilmsFormData) => {
 const INITIAL_FILTERS: FilmsFormData = { name: "", director: "" };
 
 export const Films = () => {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const fetchAllFilms = async () => api.films.list(1, "");
-
-  const {
-    data,
-    allData,
-    isLoading,
-    error,
-    filters,
-    setFilters,
-    resetFilters,
-    pagination,
-  } = useResourceLogic({
-    resourceName: "films",
-    fetcher: fetchAllFilms,
-    queryKey: queryKeys.films.all,
-    initialFilters: INITIAL_FILTERS,
-    searchParamName: "name",
-    predicate: filmsPredicate,
-  });
-
-  const { data: carouselData } = useQuery({
-    queryKey: queryKeys.films.all,
-    queryFn: () => api.films.list(1, ""),
-    staleTime: API_CONFIG.staleTime,
-  });
-
-  const carouselItems = useMemo(() => {
-    const sourceRaw = carouselData;
-    let source: IFilm[] = [];
-    
-    if (Array.isArray(sourceRaw)) {
-        source = sourceRaw;
-    } else if (sourceRaw && 'results' in sourceRaw) {
-        source = sourceRaw.results;
-    }
-
-    const sorted = [...source].sort((a, b) => a.episode_id - b.episode_id);
-    return sorted.map((film) => ({
-      img: POSTERS_BY_EPISODE[film.episode_id] ?? "",
-      title: film.title,
-      subtitle: `Episode ${film.episode_id} - Directed by ${film.director}`,
-    }));
-  }, [carouselData]);
-
   return (
-    <ResourceLayout title="Films" isLoading={isLoading} error={error}>
-      {carouselItems.length > 0 && (
-        <div className="mb-8">
-          <HeroCarousel items={carouselItems} />
-        </div>
-      )}
-
-      <div className="bg-base-200 p-4 rounded-lg shadow-md mb-6">
-        <FilmsFilterForm
-          onSubmit={setFilters}
-          onReset={resetFilters}
-          defaultValues={filters as FilmsFormData}
-          resourceList={allData}
-        />
-      </div>
-
-      <ActiveFilters filters={filters} onReset={resetFilters} />
-
-      {data.length === 0 ? (
-        <div className="alert alert-warning">No films found matching your criteria.</div>
-      ) : (
-        <>
-          <div className="mb-4 text-sm opacity-70">Showing {data.length} results</div>
-          <FilmsList data={data} onView={setSelectedId} />
-          
-          <PaginationControls
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            onNext={pagination.nextPage}
-            onPrev={pagination.prevPage}
-          />
-        </>
-      )}
-
-      <FilmsModal id={selectedId} onClose={() => setSelectedId(null)} />
-    </ResourceLayout>
+    <GenericResourcePage<IFilm, FilmsFormData>
+      title="Films"
+      resourceName="films"
+      fetcher={() => api.films.list(1, "")}
+      queryKey={queryKeys.films.all}
+      initialFilters={INITIAL_FILTERS}
+      predicate={filmsPredicate}
+      searchParamName="name"
+      FilterComponent={FilmsFilterForm}
+      ListComponent={FilmsList}
+      ModalComponent={FilmsModal}
+    />
   );
 };
 

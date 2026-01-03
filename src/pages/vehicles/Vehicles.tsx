@@ -1,15 +1,12 @@
-import { useState } from "react";
 import { api } from "@/api/api";
 import { queryKeys } from "@/api/queryKeys";
-import { ResourceLayout } from "@/components/ResourceLayout/ResourceLayout";
-import { ActiveFilters } from "@/components/ActiveFilters/ActiveFilters";
-import { PaginationControls } from "@/components/PaginationControls/PaginationControls";
+import { matchesSearch } from "@/utilities/filter-utils";
+import type { IVehicle } from "@/types";
+import { GenericResourcePage } from "@/components/GenericResourcePage/GenericResourcePage";
+
 import { VehiclesList } from "./components/VehiclesList/VehiclesList";
 import { VehiclesFilterForm, type VehiclesFormData } from "./components/VehiclesFilterForm/VehiclesFilterForm";
 import { VehiclesModal } from "./components/VehiclesModal/VehiclesModal";
-import { matchesSearch } from "@/utilities/filter-utils";
-import type { IVehicle } from "@/types";
-import { useResourceLogic } from "@/hooks/useResourceLogic";
 
 const vehiclesPredicate = (vehicle: IVehicle, filters: VehiclesFormData) => {
   const nameMatch = matchesSearch(vehicle.name, filters.name);
@@ -20,59 +17,19 @@ const vehiclesPredicate = (vehicle: IVehicle, filters: VehiclesFormData) => {
 const INITIAL_FILTERS: VehiclesFormData = { name: "", vehicle_class: "" };
 
 export const Vehicles = () => {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const fetchAllVehicles = async () => api.vehicles.list(1, "");
-
-  const { 
-    data, 
-    allData,
-    isLoading, 
-    error, 
-    filters, 
-    setFilters, 
-    resetFilters,
-    pagination 
-  } = useResourceLogic({
-    resourceName: "vehicles",
-    fetcher: fetchAllVehicles,
-    queryKey: queryKeys.vehicles.all,
-    initialFilters: INITIAL_FILTERS,
-    searchParamName: "name",
-    predicate: vehiclesPredicate,
-  });
-
   return (
-    <ResourceLayout title="Vehicles" isLoading={isLoading} error={error}>
-      <div className="bg-base-200 p-4 rounded-lg shadow-md mb-6">
-        <VehiclesFilterForm
-          onSubmit={setFilters}
-          onReset={resetFilters}
-          defaultValues={filters as VehiclesFormData}
-          resourceList={allData}
-        />
-      </div>
-
-      <ActiveFilters filters={filters} onReset={resetFilters} />
-
-      {data.length === 0 ? (
-        <div className="alert alert-warning">No vehicles found matching your criteria.</div>
-      ) : (
-        <>
-          <div className="mb-4 text-sm opacity-70">Showing {data.length} results</div>
-          <VehiclesList data={data} onView={setSelectedId} />
-          
-          <PaginationControls
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            onNext={pagination.nextPage}
-            onPrev={pagination.prevPage}
-          />
-        </>
-      )}
-
-      <VehiclesModal id={selectedId} onClose={() => setSelectedId(null)} />
-    </ResourceLayout>
+    <GenericResourcePage<IVehicle, VehiclesFormData>
+      title="Vehicles"
+      resourceName="vehicles"
+      fetcher={() => api.vehicles.list(1, "")}
+      queryKey={queryKeys.vehicles.all}
+      initialFilters={INITIAL_FILTERS}
+      predicate={vehiclesPredicate}
+      searchParamName="name"
+      FilterComponent={VehiclesFilterForm}
+      ListComponent={VehiclesList}
+      ModalComponent={VehiclesModal}
+    />
   );
 };
 
