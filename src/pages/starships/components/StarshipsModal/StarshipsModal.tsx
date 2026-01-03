@@ -4,7 +4,7 @@ import { placeholder } from "@/utilities/placeholder";
 import type { IStarship } from "@/types";
 
 const fetchStarship = async (id: string) => {
-  const { data } = await api.get<IStarship>(`starships/${id}/`);
+  const { data } = await api.get<IStarship>(`/starships/${id}/`);
   return data;
 };
 
@@ -25,7 +25,7 @@ export const StarshipsModal = ({ id, onClose }: Props) => {
 
   return (
     <div className="modal modal-open" role="dialog" aria-modal="true">
-      <div className="modal-box max-w-3xl">
+      <div className="modal-box max-w-3xl relative">
         <button
           type="button"
           className="btn btn-ghost btn-sm btn-circle absolute right-2 top-2"
@@ -67,6 +67,7 @@ export const StarshipsModal = ({ id, onClose }: Props) => {
           </div>
         )}
       </div>
+      <div className="modal-backdrop" onClick={onClose}></div>
     </div>
   );
 };

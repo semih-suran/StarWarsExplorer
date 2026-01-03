@@ -1,7 +1,7 @@
-/* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense, type ComponentType } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Loading } from "./components/Loading/Loading";
+import { Layout } from "./Layout";
 
 const load = (
   importFn: () => Promise<{ default: ComponentType<unknown> }>, 
@@ -22,22 +22,6 @@ const Starships = load(() => import("./pages/starships/Starships"), "Starships")
 const Vehicles = load(() => import("./pages/vehicles/Vehicles"), "Vehicles");
 const Favorites = load(() => import("./pages/favorites/Favorites"), "Favorites");
 
-export const prefetchRoute = (path: string) => {
-  const map: Record<string, () => Promise<unknown>> = {
-    "/people": () => import("./pages/people/People"),
-    "/planets": () => import("./pages/planets/Planets"),
-    "/films": () => import("./pages/films/Films"),
-    "/species": () => import("./pages/species/Species"),
-    "/starships": () => import("./pages/starships/Starships"),
-    "/vehicles": () => import("./pages/vehicles/Vehicles"),
-    "/favorites": () => import("./pages/favorites/Favorites"),
-  };
-
-  if (map[path]) {
-    map[path]();
-  }
-};
-
 export const AppRoutes = () => {
   return (
     <Suspense
@@ -48,15 +32,18 @@ export const AppRoutes = () => {
       }
     >
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/people" element={<People />} />
-        <Route path="/planets" element={<Planets />} />
-        <Route path="/films" element={<Films />} />
-        <Route path="/species" element={<Species />} />
-        <Route path="/starships" element={<Starships />} />
-        <Route path="/vehicles" element={<Vehicles />} />
-        <Route path="/favorites" element={<Favorites />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/people" element={<People />} />
+          <Route path="/planets" element={<Planets />} />
+          <Route path="/films" element={<Films />} />
+          <Route path="/species" element={<Species />} />
+          <Route path="/starships" element={<Starships />} />
+          <Route path="/vehicles" element={<Vehicles />} />
+          <Route path="/favorites" element={<Favorites />} />
+          
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
       </Routes>
     </Suspense>
   );

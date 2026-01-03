@@ -20,7 +20,7 @@ type PersonDetail = {
 };
 
 const fetchPerson = async (id: string) => {
-  const { data } = await api.get<PersonDetail>(`/people/${id}`);
+  const { data } = await api.get<PersonDetail>(`/people/${id}/`);
   return data;
 };
 
