@@ -1,15 +1,14 @@
-import React from "react";
-import { Navigation } from "./components/Navigation/Navigation";
+import { Navigation } from "@/components/Navigation/Navigation";
+import { Outlet } from "react-router-dom";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-export const Layout = ({ children }: LayoutProps) => {
+export const Layout = () => {
   return (
-    <>
+    <div className="min-h-screen bg-base-200 text-base-content font-sans">
       <Navigation />
-      <div className="container mx-auto px-4">{children}</div>
-    </>
+      
+      <main className="container mx-auto px-4 pt-24 pb-12 animate-fade-in">
+         <Outlet /> 
+      </main>
+    </div>
   );
 };

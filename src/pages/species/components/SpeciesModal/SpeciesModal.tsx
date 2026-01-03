@@ -4,7 +4,7 @@ import { placeholder } from "@/utilities/placeholder";
 import type { ISpecie } from "@/types";
 
 const fetchSpecies = async (id: string) => {
-  const { data } = await api.get<ISpecie>(`species/${id}/`);
+  const { data } = await api.get<ISpecie>(`/species/${id}/`);
   return data;
 };
 
@@ -28,7 +28,7 @@ export const SpeciesModal = ({ id, onClose }: Props) => {
 
   return (
     <div className="modal modal-open" role="dialog" aria-modal="true">
-      <div className="modal-box max-w-3xl">
+      <div className="modal-box max-w-3xl relative">
         <button
           type="button"
           className="btn btn-ghost btn-sm btn-circle absolute right-2 top-2"
@@ -73,6 +73,7 @@ export const SpeciesModal = ({ id, onClose }: Props) => {
           </div>
         )}
       </div>
+      <div className="modal-backdrop" onClick={onClose}></div>
     </div>
   );
 };
