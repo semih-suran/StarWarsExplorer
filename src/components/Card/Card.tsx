@@ -18,7 +18,10 @@ export const Card = ({ id, url, title, image, children, onView, type }: CardProp
   const isFavorite = useFavoritesStore((s) => s.isFavorite(url));
 
   const toggleSelection = useSelectionStore((s) => s.toggleSelection);
-  const isSelected = useSelectionStore((s) => s.selectedItems.some((i) => i.id === id));
+  
+  const isSelected = useSelectionStore((s) => 
+    s.selectedItems.some((item) => item.id === id && item.type === type)
+  );
 
   const handleFavoriteToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
