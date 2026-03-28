@@ -58,28 +58,32 @@ npm run build
 I have organized the codebase using a Feature-First (Co-location) architecture. Note the move from rigid "Generic Pages" to a Compositional Layout pattern.
 
 ```
-
 src/
-├── .github/workflows/          # CI/CD Pipeline Configuration
+├── .github/workflows/              # CI/CD Pipeline Configuration
 ├── api/
-│ └── api.ts                    # Centralized Adapter (Zod-validated)
-├── components/                 # Shared UI components
-│ ├── ResourceLayout/           # Reusable Application Shells
-│ │ └── ResourceLayout.tsx
-│ └── ...
-├── hooks/                      # Reusable Logic
-│ ├── useFavoritesData.ts       # Live-fetching logic for Favorites (SSOT)
-│ ├── usePagination.ts          # Deterministic pagination logic
-│ └── ...
-├── pages/                      # Domain Views
+│   ├── api.ts                      # Centralized Axios instance & resource fetchers
+│   ├── schemas.ts                  # Zod schemas (Source of truth for all types)
+│   └── queryKeys.ts                # Unified Query Key Factory for cache consistency
+├── components/                     # Global UI & Layouts
+│   ├── GenericResourcePage/        # High-order component for domain views
+│   │ └── GenericResourcePage.tsx
+│   └── Card/  
+│   ├── ResourceLayout/             # Reusable Application Shells
+│   │ └── ResourceLayout.tsx
+│   └── ...                         # Atomic components with type-safe selection
+├── hooks/                          # Orchestration logic
+│   ├── useFavoritesData.ts         # Live-fetching logic for Favorites (SSOT)
+│   ├── usePagination.ts            # Deterministic pagination logic
+│   ├── useResourceLogic.ts         # Generic filtering/pagination orchestrator
+│   └── ...
+├── pages/                          # Domain Views (Compositional entry points)
 │ ├── planets/
-│ │ ├── Planets.tsx             # View Layer (Composes Layout + Filters + List)
+│ │ ├── Planets.tsx                 # View Layer (Composes Layout + Filters + List)
 │ │ ├── Planets.helpers.ts
 │ │ └── ...
-├── store/                      # Global state (Zustand)
-├── types/                      # TypeScript Interfaces (Inferred from Zod)
-└── utilities/                  # Global Helper functions
-
+├── store/                          # Zustand stores (Favorites, Selection)
+├── types/                          # Types inferred directly from Zod schemas
+└── utilities/                      # Global Helper functions
 ```
 
 ## 🧠 Architectural Decisions & Trade-offs
